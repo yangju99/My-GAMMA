@@ -12,7 +12,7 @@ from tqdm import tqdm
 
 
 class BaseModel(nn.Module):
-    def __init__(self, node_num, device, lr=1e-3, patience=5, result_dir='./results', hash_id=None, **kwargs):
+    def __init__(self, node_num, device, normal_avg, lr=1e-3, patience=5, result_dir='./results', hash_id=None, **kwargs):
         super(BaseModel, self).__init__()
         
         self.epochs = kwargs['epochs']
@@ -21,9 +21,10 @@ class BaseModel(nn.Module):
         self.node_num = node_num
         self.model_save_dir = os.path.join(kwargs['model_save_dir'], hash_id) 
         self.patience = patience 
+        self.normal_avg = normal_avg
 
         if kwargs['model'] == 'all':
-            self.model = MainModel(self.node_num, self.device, alpha=0.2, **kwargs)
+            self.model = MainModel(self.node_num, self.device, self.normal_avg, alpha=0.2, **kwargs)
 
         else:
             print("Please select a valid model")

@@ -323,7 +323,7 @@ class MultiSourceEncoder(nn.Module):
 
 
 class MainModel(nn.Module):
-    def __init__(self, node_num, device, alpha=0.1, **kwargs):
+    def __init__(self, node_num, device, normal_avg, alpha=0.1, **kwargs):
         super(MainModel, self).__init__()
 
         self.device = device
@@ -331,10 +331,12 @@ class MainModel(nn.Module):
         self.alpha = alpha
         self.weight_loss = kwargs['weight_loss']
         self.encoder = MultiSourceEncoder(self.node_num, device, alpha=alpha, **kwargs)
-        
+        self.normal_avg = normal_avg
+
         self.detector_criterion = nn.CrossEntropyLoss(torch.FloatTensor(self.weight_loss).to(self.device))
         self.detector = FullyConnected(self.encoder.feat_out_dim, 2, [64, 64]).to(device)
         self.get_prob = nn.Softmax(dim=-1)
+
 
 
     def forward(self, graph, anomaly_gt, rootcause_gt, only_train=False):  
@@ -417,8 +419,9 @@ class MainModel(nn.Module):
         masked_graphs = [] 
         
         for i in range(self.node_num):
-            #masked_graph = self.masking(graph, i)
-            masked_graph = self.zero_masking(graph, i)
+            masked_graph = self.masking(graph, i)
+            #masked_graph = self.zero_masking(graph, i)
+            #masked_graph = self.normal_masking(graph, i)
             masked_graphs.append(masked_graph)
 
         return masked_graphs
@@ -448,6 +451,24 @@ class MainModel(nn.Module):
         subgraph.ndata['container_network_transmit_bytes_total'][node_index] = torch.zeros(subgraph.ndata['container_network_transmit_bytes_total'][node_index].shape)
         subgraph.ndata['container_network_receive_bytes_total'][node_index] = torch.zeros(subgraph.ndata['container_network_receive_bytes_total'][node_index].shape)
         subgraph.ndata['container_memory_usage_bytes'][node_index] = torch.zeros(subgraph.ndata['container_memory_usage_bytes'][node_index].shape)
+
+        return subgraph
+
+    def normal_masking(self, graph, node_index):
+        subgraph = graph.clone()
+
+        subgraph.ndata['latency'] = copy.deepcopy(graph.ndata['latency'])
+        subgraph.ndata['container_cpu_usage_seconds_total'] = copy.deepcopy(graph.ndata['container_cpu_usage_seconds_total'])
+        subgraph.ndata['container_network_transmit_bytes_total'] = copy.deepcopy(graph.ndata['container_network_transmit_bytes_total'])
+        subgraph.ndata['container_network_receive_bytes_total'] = copy.deepcopy(graph.ndata['container_network_receive_bytes_total'])
+        subgraph.ndata['container_memory_usage_bytes'] = copy.deepcopy(graph.ndata['container_memory_usage_bytes'])
+
+        # 변경하고자 하는 노드의 데이터를 업데이트
+        subgraph.ndata['latency'][node_index] = self.normal_avg['avg_latency'][node_index].clone() 
+        subgraph.ndata['container_cpu_usage_seconds_total'][node_index] = self.normal_avg['avg_cpu'][node_index].clone() 
+        subgraph.ndata['container_network_transmit_bytes_total'][node_index] = self.normal_avg['avg_network_out'][node_index].clone() 
+        subgraph.ndata['container_network_receive_bytes_total'][node_index] = self.normal_avg['avg_network_in'][node_index].clone() 
+        subgraph.ndata['container_memory_usage_bytes'][node_index] = self.normal_avg['avg_memory'][node_index].clone() 
 
         return subgraph
 

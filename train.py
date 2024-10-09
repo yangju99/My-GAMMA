@@ -79,23 +79,77 @@ def run(params):
     train_data = chunkDataset(train_chunks, edges, params['nodes'])
     test_data = chunkDataset(test_chunks, edges, params['nodes'])
 
+    normal_avg = extract_normal_status(train_data)
+
     train_dl = DataLoader(train_data, batch_size = params['batch_size'], shuffle=True, collate_fn=collate, pin_memory=True)
     test_dl = DataLoader(test_data, batch_size = params['batch_size'], shuffle=False, collate_fn=collate, pin_memory=True)
     logging.info("Data loaded successfully!")
 
     device = get_device(params["check_device"])
-    model = BaseModel(nodes, device, lr = params["learning_rate"], **params)
+    model = BaseModel(nodes, device, normal_avg, lr = params["learning_rate"], **params)
 
     #For testing!!
     model.load_model("./results/3855e80a/model.ckpt")
     eval_result = model.evaluate(test_dl, datatype="Test")
     eval_result = model.evaluate(test_dl, is_random=True, datatype="Test") #testing random ranked list 
 
-    #For training!! 
-    print("hash_id: ", hash_id)
-    scores, converge = model.fit(train_dl, test_dl, evaluation_epoch= params['evaluation_epoch'])
-    dump_scores(params["model_save_dir"], hash_id, scores, converge)
-    logging.info("Current hash_id {}".format(hash_id))
+    # #For training!! 
+    # print("hash_id: ", hash_id)
+    # scores, converge = model.fit(train_dl, test_dl, evaluation_epoch= params['evaluation_epoch'])
+    # dump_scores(params["model_save_dir"], hash_id, scores, converge)
+    # logging.info("Current hash_id {}".format(hash_id))
+
+
+def normal_status_average(train_data):
+    result = {}
+    sum_latency = None 
+    sum_cpu = None
+    sum_network_out = None 
+    sum_network_in = None
+    sum_memory = None
+
+    normal_count = 0
+
+    for data in train_data:
+        if data[1] == 0: #anomaly가 없는 경우 normal 상태의 graph의 평균값을 얻기 위함
+            normal_count += 1
+            graph = data[0]
+            if sum_latency is None:
+                sum_latency = graph.ndata['latency']
+                sum_cpu = graph.ndata['container_cpu_usage_seconds_total']
+                sum_network_out = graph.ndata['container_network_transmit_bytes_total']
+                sum_network_in = graph.ndata['container_network_receive_bytes_total']
+                sum_memory = graph.ndata['container_memory_usage_bytes']
+            else:
+                sum_latency += graph.ndata['latency']
+                sum_cpu += graph.ndata['container_cpu_usage_seconds_total']
+                sum_network_out += graph.ndata['container_network_transmit_bytes_total']
+                sum_network_in += graph.ndata['container_network_receive_bytes_total']
+                sum_memory += graph.ndata['container_memory_usage_bytes']
+
+    result['avg_latency'] = sum_latency / normal_count
+    result['avg_cpu'] = sum_cpu / normal_count
+    result['avg_network_out'] = sum_network_out / normal_count
+    result['avg_network_in'] = sum_network_in / normal_count
+    result['avg_memory'] = sum_memory / normal_count
+
+    return result 
+
+def extract_normal_status(train_data):
+    result = {}
+
+    for data in train_data:
+        if data[1] == 0: #anomaly가 없는 경우 normal 상태의 graph의 평균값을 얻기 위함
+            graph = data[0]
+            result['avg_latency'] = graph.ndata['latency']
+            result['avg_cpu'] = graph.ndata['container_cpu_usage_seconds_total']
+            result['avg_network_out'] = graph.ndata['container_network_transmit_bytes_total']
+            result['avg_network_in'] = graph.ndata['container_network_receive_bytes_total']
+            result['avg_memory'] = graph.ndata['container_memory_usage_bytes']
+
+    return result 
+
+
 
 
 # Instantiate your Dataset and DataLoader
