@@ -72,3 +72,5 @@
 2024-09-13 07:47:27,148 P98477 INFO Epoch 49/50, training loss: 0.24394 [19.41s]
 2024-09-13 07:52:38,178 P98477 INFO Test -- loss: 0.4243, F1: 0.7942, Rec: 0.8679, Pre: 0.7320, Metric 1: 0.9902, Metric 2: 0.4068, avg_max_score_diff: 0.5582, avg_gt_score_diff: 0.4409
 2024-09-13 07:52:57,576 P98477 INFO Epoch 50/50, training loss: 0.23259 [19.39s]
+2024-10-09 06:06:20,951 P41004 INFO Data loaded successfully!
+2024-10-09 06:06:20,968 P41004 INFO Using CPU...

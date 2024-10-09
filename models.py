@@ -352,19 +352,21 @@ class MainModel(nn.Module):
         loss = self.detector_criterion(detect_logits, y_window_anomaly)
         prob_logits = self.get_prob(detect_logits) 
 
+        #test 시에는 Rootcause localization task에 대한 성능 평가를 위해 RC inference를 해야 함 
         if only_train == False:
-            y_pred, max_score_diff, gt_score_diff = self.inference(batch_size, graph, prob_logits, rootcause_gt)
-            return {'loss': loss,'y_pred': y_pred, 'y_prob': y_node_anomaly.detach().cpu().numpy(), 'max_score_diff': max_score_diff, 'gt_score_diff': gt_score_diff }
+            y_pred = self.inference(graph, prob_logits, rootcause_gt)
+            random_y_pred =  self.random_inference(graph, prob_logits, rootcause_gt)
+            return {'loss': loss,'y_pred': y_pred, 'random_y_pred': random_y_pred}
 
+        #train 시에는 anomaly detection task에 대해서만 학습하면 됨
         else:
             return {'loss': loss}
 
 
-    def inference(self, batch_size, graph, prob_logits, rootcause_gt):
+    def inference(self,graph, prob_logits, rootcause_gt):
+        batch_size = graph.batch_size
 
         y_pred = []
-        max_score_diff = []
-        gt_score_diff = []
 
         detect_pred = prob_logits.argmax(axis=1).squeeze() 
         graph_list = dgl.unbatch(graph)
@@ -372,110 +374,80 @@ class MainModel(nn.Module):
         for i in range(batch_size):
             if detect_pred[i] < 1: 
                 y_pred.append([-1]) #anomaly 가 없으면 -1 값 
-                max_score_diff.append(-1)
-                gt_score_diff.append(-1)
 
             else: #anomaly 가 있다면?
-                # anomaly_indexs.append(i)
-                max_diff = -1  
-                best_mask = None 
-                gt_mask = [1 - x for x in rootcause_gt[i]]
                 current_graph = graph_list[i]
 
-                rootcause_number = (rootcause_gt[i]==1).sum().item()
+                masked_graph_list = self.generate_masked_graphs(current_graph)
+                masked_graph_batch = dgl.batch(masked_graph_list)
+
+                masked_embeddings = self.encoder(masked_graph_batch)
+                masked_detect_logit = self.detector(masked_embeddings)
+                masked_prob_logit = self.get_prob(masked_detect_logit)
                 
-                if rootcause_number == 0:
-                    gt_score_diff.append(-1)
-                    
-                else:
-                    gt_masked_graph = self.graph_masking(current_graph, gt_mask) 
-                    gt_masked_embeddings = self.encoder(gt_masked_graph)
-                    gt_masked_detect_logit = self.detector(gt_masked_embeddings)
-                    gt_masked_prob_logit = self.get_prob(gt_masked_detect_logit)
-                    gt_diff = prob_logits[i][1] - gt_masked_prob_logit[0][1]
-                    gt_score_diff.append(gt_diff)
+                original_prob_logits = prob_logits[i].repeat(self.node_num,1)
 
-                for _ in range(10): #랜덤 마스크 10번 적용 
-                    if rootcause_number == 0:
-                        virtual_rootcause_number = 1
-                    else:
-                        virtual_rootcause_number = rootcause_number
+                diff_list = original_prob_logits[:, 1] - masked_prob_logit[ : ,1] #original anomaly 확률 값 - masked anomaly 확률값의 차이, 이것이 클수록 mask된 노드가 RC일 확률 높음
 
-                    random_mask = [0] * virtual_rootcause_number + [1] * (self.node_num - virtual_rootcause_number)   #random_mask = [random.choice([0, 1]) for _ in range(k)] #0과 1로만 이루어짐 
-                    random.shuffle(random_mask) 
+                ranked_list = sorted(range(len(diff_list)), key=lambda i: diff_list[i], reverse=True)
 
-                    masked_graph = self.graph_masking(current_graph, random_mask) 
-                    masked_embeddings = self.encoder(masked_graph)
-                    masked_detect_logit = self.detector(masked_embeddings)
-                    masked_prob_logit = self.get_prob(masked_detect_logit)
+                y_pred.append(ranked_list)
 
-                    diff = prob_logits[i][1] - masked_prob_logit[0][1] #original anomaly 확률 값 - masked anomaly 확률값의 차이, 이것이 클수록 mask된 노드가 RC일 확률 높음
-                    if diff > max_diff:
-                        max_diff = diff
-                        best_mask = random_mask 
+        return y_pred
 
-                #best_mask에서 값이 0 인 노드들이 rootcause일 것이다. 
-                rootcause_indexs = [index for index, value in enumerate(best_mask) if value == 0]
-                y_pred.append(rootcause_indexs)
-                max_score_diff.append(max_diff)
+    def random_inference(self,graph, prob_logits, rootcause_gt):
+        batch_size = graph.batch_size
 
-        return y_pred, max_score_diff, gt_score_diff
+        y_pred = []
 
-    def graph_masking(self, graph, node_mask):
+        detect_pred = prob_logits.argmax(axis=1).squeeze() 
+        
+        for i in range(batch_size):
+            if detect_pred[i] < 1: 
+                y_pred.append([-1]) #anomaly 가 없으면 -1 값 
 
-        unmasked_index = [] 
+            else: #anomaly 가 있다면?
+                random_ranked_list = list(range(self.node_num))
+                random.shuffle(random_ranked_list)
+                y_pred.append(random_ranked_list)
+
+        return y_pred
+
+    def generate_masked_graphs(self, graph):
+        masked_graphs = [] 
+        
         for i in range(self.node_num):
-            if node_mask[i] == 1:
-                unmasked_index.append(i)
+            #masked_graph = self.masking(graph, i)
+            masked_graph = self.zero_masking(graph, i)
+            masked_graphs.append(masked_graph)
 
-        subgraph = dgl.node_subgraph(graph, unmasked_index)
+        return masked_graphs
 
-        return subgraph 
+    def masking(self, graph, node_index):
 
-#     def inference(self, batch_size, graph, prob_logits):
+        unmaksed_index = list(range(self.node_num))
+        unmaksed_index.remove(node_index) 
 
-#         y_pred = []
-#         detect_pred = prob_logits.argmax(axis=1).squeeze() 
-#         diff_lists = [] 
-#         for i in range(batch_size):
-#             graph_list = dgl.unbatch(graph)
+        # 남은 노드들로부터 새로운 서브그래프를 생성합니다.
+        subgraph = dgl.node_subgraph(graph, unmaksed_index)
 
-#             if detect_pred[i] < 1: 
-#                 y_pred.append([-1]) #anomaly 가 없으면 -1 값 
-#                 diff_lists.append([-1])
+        return subgraph
 
-#             else: #anomaly 가 있다면?
-#                 # anomaly_indexs.append(i)
-#                 diff_list = []
-#                 current_graph = graph_list[i]
-#                 for j in range(self.node_num): # node 하나씩 제거해보기 
-#                     masked_graph = self.masking(current_graph, j) #노드 하나씩 제거하는 코드
-#                     masked_embeddings = self.encoder(masked_graph)
-#                     masked_detect_logit = self.detector(masked_embeddings)
-#                     masked_prob_logit = self.get_prob(masked_detect_logit)
+    def zero_masking(self, graph, node_index):
+        subgraph = graph.clone()
 
-#                     diff = prob_logits[i][1] - masked_prob_logit[0][1] #original anomaly 확률 값 - masked anomaly 확률값의 차이, 이것이 클수록 mask된 노드가 RC일 확률 높음
-#                     diff_list.append(diff.item())
+        subgraph.ndata['latency'] = copy.deepcopy(graph.ndata['latency'])
+        subgraph.ndata['container_cpu_usage_seconds_total'] = copy.deepcopy(graph.ndata['container_cpu_usage_seconds_total'])
+        subgraph.ndata['container_network_transmit_bytes_total'] = copy.deepcopy(graph.ndata['container_network_transmit_bytes_total'])
+        subgraph.ndata['container_network_receive_bytes_total'] = copy.deepcopy(graph.ndata['container_network_receive_bytes_total'])
+        subgraph.ndata['container_memory_usage_bytes'] = copy.deepcopy(graph.ndata['container_memory_usage_bytes'])
 
-#                 diff_lists.append(diff_list)
+        # 변경하고자 하는 노드의 데이터를 업데이트
+        subgraph.ndata['latency'][node_index] = torch.zeros(subgraph.ndata['latency'][node_index].shape)
+        subgraph.ndata['container_cpu_usage_seconds_total'][node_index] = torch.zeros(subgraph.ndata['container_cpu_usage_seconds_total'][node_index].shape)
+        subgraph.ndata['container_network_transmit_bytes_total'][node_index] = torch.zeros(subgraph.ndata['container_network_transmit_bytes_total'][node_index].shape)
+        subgraph.ndata['container_network_receive_bytes_total'][node_index] = torch.zeros(subgraph.ndata['container_network_receive_bytes_total'][node_index].shape)
+        subgraph.ndata['container_memory_usage_bytes'][node_index] = torch.zeros(subgraph.ndata['container_memory_usage_bytes'][node_index].shape)
 
-            
+        return subgraph
 
-#                 temp = np.argsort(diff_list)[::-1]
-#                 # diff_lists.append(diff_list)
-#                 y_pred.append(temp)
-
-
-#         #return y_pred, diff_lists, anomaly_indexs
-#         return y_pred, diff_lists 
-
-# # j 번째 node 삭제와, 해당 node와 관련된 edge들까지 삭제해야 함 
-#     def masking(self, graph, node_index):
-#         #j 번째 node 삭제 
-#         unmaksed_index = list(range(self.node_num))
-#         unmaksed_index.remove(node_index) 
-
-#         # 남은 노드들로부터 새로운 서브그래프를 생성합니다.
-#         subgraph = dgl.node_subgraph(graph, unmaksed_index)
-
-#         return subgraph

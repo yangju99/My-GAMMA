@@ -59,7 +59,7 @@ def run(params):
     hash_id = dump_params(params)
     params["hash_id"] = hash_id
 
-    # loss 함수에 weight를 반영하기 위함  
+    # loss 함수에 weight를 반영하기 위함, anomlay 와 normal 데이터 셋 비율을 맞추는 대신 loss 함수 가중치를 통해 하려고 했음 
     num_traindata = len(train_chunks)
     anomaly_cnt_traindata = 0 
     for chunk in train_chunks:
@@ -86,16 +86,17 @@ def run(params):
     device = get_device(params["check_device"])
     model = BaseModel(nodes, device, lr = params["learning_rate"], **params)
 
+    #For testing!!
+    model.load_model("./results/3855e80a/model.ckpt")
+    eval_result = model.evaluate(test_dl, datatype="Test")
+    eval_result = model.evaluate(test_dl, is_random=True, datatype="Test") #testing random ranked list 
+
     #For training!! 
     print("hash_id: ", hash_id)
     scores, converge = model.fit(train_dl, test_dl, evaluation_epoch= params['evaluation_epoch'])
     dump_scores(params["model_save_dir"], hash_id, scores, converge)
     logging.info("Current hash_id {}".format(hash_id))
 
-
-    # # #For testing!!
-    # model.load_model("./results/3855e80a/model.ckpt")
-    # eval_result = model.evaluate(test_dl, datatype="Test")
 
 # Instantiate your Dataset and DataLoader
 ############################################################################
@@ -110,7 +111,7 @@ if __name__ == "__main__":
     result_dir = "./results"
     each_modality_feature_num = 1 # 각각의 modality(latency, cpu ,, )마다 feature의 개수, 여기서는 모두 1
     chunk_length = 20 # window size 
-    evaluation_epoch = 5
+    evaluation_epoch = 1
 
     train_file = "../data/train_data.pkl"
     test_file = "../data/test_data.pkl"
