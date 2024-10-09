@@ -7,6 +7,7 @@ import sys
 import logging
 from base import BaseModel
 import time
+from utils import *
 
 import pdb 
 
@@ -22,7 +23,7 @@ class chunkDataset(Dataset): #[node_num, T]
             self.idx2id[idx] = chunk_id
             graph = dgl.graph(edges)
             
-            # (node_num, window_size) -> (window_size, node_num)
+            # (node_num, window_size)
             graph.ndata["latency"] = torch.FloatTensor(chunk["latency"])
             graph.ndata["container_cpu_usage_seconds_total"] = torch.FloatTensor(chunk["container_cpu_usage_seconds_total"])
             graph.ndata["container_network_transmit_bytes_total"] = torch.FloatTensor(chunk["container_network_transmit_bytes_total"])
@@ -55,6 +56,19 @@ def run(params):
         test_chunks = pickle.load(te)
     te.close()
 
+    hash_id = dump_params(params)
+    params["hash_id"] = hash_id
+
+    # loss 함수에 weight를 반영하기 위함  
+    num_traindata = len(train_chunks)
+    anomaly_cnt_traindata = 0 
+    for chunk in train_chunks:
+        if chunk['label_window'] == 1:
+            anomaly_cnt_traindata += 1
+    normal_cnt_traindata = num_traindata - anomaly_cnt_traindata
+    normed_weights = [1-(normal_cnt_traindata/num_traindata), 1-(anomaly_cnt_traindata/num_traindata)]
+
+    params['weight_loss'] = normed_weights
 
     metadata = read_json(params["metadata_json"])
     source = [float(x) for x in metadata["source"]]
@@ -64,33 +78,39 @@ def run(params):
     edges = (source, target)
     train_data = chunkDataset(train_chunks, edges, params['nodes'])
     test_data = chunkDataset(test_chunks, edges, params['nodes'])
-    
-    pdb.set_trace() 
 
     train_dl = DataLoader(train_data, batch_size = params['batch_size'], shuffle=True, collate_fn=collate, pin_memory=True)
     test_dl = DataLoader(test_data, batch_size = params['batch_size'], shuffle=False, collate_fn=collate, pin_memory=True)
     logging.info("Data loaded successfully!")
 
     device = get_device(params["check_device"])
-    model = BaseModel(nodes, device, epoches = evaluation_epochs, lr = params["learning_rate"], **params)
-    train_logit_list = model.fit(train_dl)
-    model = BaseModel(nodes, device, epoches = evaluation_epochs, lr = params["learning_rate"], **params)
-    test_logit_list = model.evaluate(test_dl)  
+    model = BaseModel(nodes, device, lr = params["learning_rate"], **params)
+
+    #For training!! 
+    print("hash_id: ", hash_id)
+    scores, converge = model.fit(train_dl, test_dl, evaluation_epoch= params['evaluation_epoch'])
+    dump_scores(params["model_save_dir"], hash_id, scores, converge)
+    logging.info("Current hash_id {}".format(hash_id))
 
 
+    # # #For testing!!
+    # model.load_model("./results/3855e80a/model.ckpt")
+    # eval_result = model.evaluate(test_dl, datatype="Test")
 
 # Instantiate your Dataset and DataLoader
 ############################################################################
 if __name__ == "__main__":
 
     nodes = 30
-    batch_size = 32
+    batch_size = 256
     random_seed = 12345
-    evaluation_epochs = 20
-    learning_rate = 0.001
+    epochs = 50
+    learning_rate = 0.001 
     model = "all"
     result_dir = "./results"
-    window_size = 60 # 여기서의 window_size는 time-temporal 을 위한 1D convolution layer의 output_dim 을 뜻함? 
+    each_modality_feature_num = 1 # 각각의 modality(latency, cpu ,, )마다 feature의 개수, 여기서는 모두 1
+    chunk_length = 20 # window size 
+    evaluation_epoch = 5
 
     train_file = "../data/train_data.pkl"
     test_file = "../data/test_data.pkl"
@@ -98,7 +118,6 @@ if __name__ == "__main__":
 
     features = ["latency", "container_cpu_usage_seconds_total", "container_memory_usage_bytes", 
                 "container_network_transmit_bytes_total", "container_network_receive_bytes_total"]
-
 
     params = {'nodes': nodes,
             'batch_size': batch_size,
@@ -108,12 +127,14 @@ if __name__ == "__main__":
             'learning_rate': learning_rate, 
             'model': 'all',
             'check_device': "gpu",
-            'input_dims': window_size,
-            'model_save_dir': result_dir
+            'input_dims': each_modality_feature_num,
+            'model_save_dir': result_dir,
+            'chunk_length' : chunk_length,
+            'epochs' : epochs,
+            'evaluation_epoch': evaluation_epoch
     }     
 
     run(params)
-    # print(device)
-    # print(type(device))
+
 
 

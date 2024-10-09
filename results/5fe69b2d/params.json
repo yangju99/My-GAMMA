@@ -1,0 +1,14 @@
+{
+    "batch_size": 256,
+    "check_device": "gpu",
+    "chunk_length": 200,
+    "epochs": 20,
+    "input_dims": 1,
+    "learning_rate": 0.001,
+    "metadata_json": "../data/metadata.json",
+    "model": "all",
+    "model_save_dir": "./results",
+    "nodes": 30,
+    "test_file": "../data/test_data.pkl",
+    "train_file": "../data/train_data.pkl"
+}

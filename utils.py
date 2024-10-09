@@ -8,6 +8,7 @@ import json
 import logging
 import dgl
 import inspect
+import pdb 
 
 def read_json(filepath):
     if os.path.exists(filepath):
@@ -57,35 +58,13 @@ def get_metrics(predictions, true_labels):
     return accuracy, precision, recall, f1_score
 
 
-def collate(samples):
-    # Assuming samples is a list of tuples, where each tuple contains a graph and a label.
-    graphs, labels = map(list, zip(*samples))
+def collate(data):
+    graphs, anomaly_gts, rootcause_gts = map(list, zip(*data))
     batched_graph = dgl.batch(graphs)
-    batch_size = len(graphs)
-    # Extract the features from the batched graph.
-    # Assuming 'features' is the key where node features are stored.
-    lat = batched_graph.ndata['latency']    
-    input_lat = lat.shape[0] // batch_size
-    reshaped_lat = lat.view(batch_size, input_lat, -1).permute(0, 2, 1)
+    anomaly_gts_array = np.array(anomaly_gts)
+    rootcause_gts_array = np.array(rootcause_gts)
 
-    cpu = batched_graph.ndata['container_cpu_usage_seconds_total']
-    input_cpu = cpu.shape[0] // batch_size
-    reshaped_cpu = cpu.view(batch_size, input_cpu, -1).permute(0, 2, 1)
-
-    mem = batched_graph.ndata['container_memory_usage_bytes']
-    input_mem = mem.shape[0] // batch_size
-    reshaped_mem = mem.view(batch_size, input_mem, -1).permute(0, 2, 1)
-
-    nout = batched_graph.ndata['container_network_transmit_bytes_total']
-    input_nout = nout.shape[0] // batch_size
-    reshaped_nout = nout.view(batch_size, input_nout, -1).permute(0, 2, 1)
-
-    nin = batched_graph.ndata['container_network_receive_bytes_total']
-    input_nin = nin.shape[0] // batch_size
-    reshaped_nin = nin.view(batch_size, input_nin, -1).permute(0, 2, 1)
-    # Reshape the features from (batch_size*input_dim, T) to (batch_size, T, input_dim)
-
-    return batched_graph, reshaped_lat, reshaped_lat, reshaped_mem, reshaped_nout, reshaped_nin, torch.tensor(labels)
+    return batched_graph , torch.tensor(anomaly_gts_array), torch.tensor(rootcause_gts_array)
 
 
 def save_logits_as_dict(logits, keys, filename):
@@ -106,4 +85,65 @@ def save_logits_as_dict(logits, keys, filename):
             tensor_dict[names[0]] = logit
             
     return tensor_dict
+
+import hashlib
+def dump_params(params):
+    hash_id = hashlib.md5(str(sorted([(k, v) for k, v in params.items()])).encode("utf-8")).hexdigest()[0:8]
+    result_dir = os.path.join(params["model_save_dir"], hash_id)
+    os.makedirs(result_dir, exist_ok=True)
+
+    json_pretty_dump(params, os.path.join(result_dir, "params.json"))
+
+    log_file = os.path.join(result_dir, "running.log")
+    for handler in logging.root.handlers[:]:
+        logging.root.removeHandler(handler)
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s P%(process)d %(levelname)s %(message)s",
+        handlers=[logging.FileHandler(log_file), logging.StreamHandler()],
+    )
+    return hash_id
+
+from datetime import datetime, timedelta
+def dump_scores(result_dir, hash_id, scores, converge):
+    with open(os.path.join(result_dir, 'experiments.txt'), 'a+') as fw:
+        fw.write(hash_id+': '+(datetime.now()+timedelta(hours=8)).strftime("%Y/%m/%d-%H:%M:%S")+'\n')
+        fw.write("* Test result -- " + '\t'.join(["{}:{:.4f}".format(k, v) for k,v in scores.items()])+'\n')
+        fw.write('Best score got at epoch: '+str(converge)+'\n')
+        fw.write('{}{}'.format('='*40, '\n'))
+
+
+def json_pretty_dump(obj, filename):
+    with open(filename, "w") as fw:
+        json.dump(obj,fw, sort_keys=True, indent=4, separators=(",", ": "), ensure_ascii=False)
+
+
+# def anomaly_score_check(y_prob, score_diff_list):
+    
+#     pdb.set_trace() 
+#     normal_score = 0 
+#     normal_count = 0 
+#     rootcause_score = 0 
+#     rootcause_count = 0
+
+#     for i in range(len(score_diff_list)):
+#         if score_diff_list[i] == -1:
+#             continue 
+
+#         rc_gt = y_prob[i]
+#         diff_list = score_diff_list[i] 
+#         # TP 일때만 계산 
+#         if 1 in rc_gt: 
+#             for j in range(len(rc_gt)):
+#                 if rc_gt[j] == 0:
+#                     normal_score += diff_list[j]
+#                     normal_count += 1
+
+#                 else:
+#                     rootcause_score += diff_list[j]
+#                     rootcause_count += 1
+                
+        
+#     return normal_score/normal_count, rootcause_score/rootcause_count 
 

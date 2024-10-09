@@ -1,0 +1,12 @@
+5fe69b2d: 2024/09/03-08:05:38
+* Test result -- loss:0.6006	F1:0.8261	Rec:0.8156	Pre:0.8369	Mymetric:0.5280
+Best score got at epoch: 4
+========================================
+b1e80431: 2024/09/06-07:03:49
+* Test result -- loss:0.4254	F1:0.7367	Rec:0.6317	Pre:0.8834	Mymetric:0.5706	Random_Mymetric:0.2982
+Best score got at epoch: 8
+========================================
+c9e90ced: 2024/09/06-23:58:51
+* Test result -- loss:0.5345	F1:0.7434	Rec:0.6767	Pre:0.8247	Mymetric:0.6123	Random_Mymetric:0.3011
+Best score got at epoch: 9
+========================================
