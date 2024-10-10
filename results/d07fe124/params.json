@@ -1,8 +1,9 @@
 {
     "batch_size": 256,
     "check_device": "gpu",
-    "chunk_length": 200,
-    "epochs": 20,
+    "chunk_length": 20,
+    "epochs": 10,
+    "evaluation_epoch": 1,
     "input_dims": 1,
     "learning_rate": 0.001,
     "metadata_json": "../data/metadata.json",

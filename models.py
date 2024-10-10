@@ -333,7 +333,8 @@ class MainModel(nn.Module):
         self.encoder = MultiSourceEncoder(self.node_num, device, alpha=alpha, **kwargs)
         self.normal_avg = normal_avg
 
-        self.detector_criterion = nn.CrossEntropyLoss(torch.FloatTensor(self.weight_loss).to(self.device))
+        #self.detector_criterion = nn.CrossEntropyLoss()
+        self.detector_criterion = nn.CrossEntropyLoss(torch.FloatTensor(self.weight_loss).to(device))
         self.detector = FullyConnected(self.encoder.feat_out_dim, 2, [64, 64]).to(device)
         self.get_prob = nn.Softmax(dim=-1)
 
@@ -426,15 +427,19 @@ class MainModel(nn.Module):
 
         return masked_graphs
 
+
+
     def masking(self, graph, node_index):
 
         unmaksed_index = list(range(self.node_num))
         unmaksed_index.remove(node_index) 
 
+
         # 남은 노드들로부터 새로운 서브그래프를 생성합니다.
         subgraph = dgl.node_subgraph(graph, unmaksed_index)
 
         return subgraph
+
 
     def zero_masking(self, graph, node_index):
         subgraph = graph.clone()
@@ -471,4 +476,3 @@ class MainModel(nn.Module):
         subgraph.ndata['container_memory_usage_bytes'][node_index] = self.normal_avg['avg_memory'][node_index].clone() 
 
         return subgraph
-

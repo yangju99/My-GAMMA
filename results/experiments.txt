@@ -10,3 +10,19 @@ c9e90ced: 2024/09/06-23:58:51
 * Test result -- loss:0.5345	F1:0.7434	Rec:0.6767	Pre:0.8247	Mymetric:0.6123	Random_Mymetric:0.3011
 Best score got at epoch: 9
 ========================================
+393f6bee: 2024/10/10-02:37:15
+* Test result -- loss:0.3664	F1:0.8086	Rec:0.8901	Pre:0.7407	My metric:0.4732	Avg_top:12.8964	A@1:0.7966	A@3:0.8236
+Best score got at epoch: 10
+========================================
+e7eb031c: 2024/10/10-09:03:08
+* Test result -- loss:0.4579	F1:0.6709	Rec:0.5370	Pre:0.8937	My_metric:0.5954	Avg_top:9.0868	A@1:0.9965	A@3:0.9985
+Best score got at epoch: 1
+========================================
+d07fe124: 2024/10/10-09:42:18
+* Test result -- loss:0.3824	F1:0.7372	Rec:0.6407	Pre:0.8679	My_metric:0.5506	Avg_top:10.5783	A@1:0.9702	A@3:0.9961
+Best score got at epoch: 3
+========================================
+c2d4beb8: 2024/10/10-10:34:00
+* Test result -- loss:0.4345	F1:0.7375	Rec:0.6667	Pre:0.8252	My_metric:0.5193	Avg_top:11.1248	A@1:0.9745	A@3:0.9938
+Best score got at epoch: 2
+========================================

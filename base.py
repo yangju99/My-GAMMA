@@ -49,6 +49,8 @@ class BaseModel(nn.Module):
         batch_cnt, epoch_loss = 0, 0.0
         TP, FP, FN, TN = 0, 0, 0, 0 
         avg_my_metric = 0
+        avg_avg_top = 0 
+        A_1, A_3 = 0, 0 
         pred_type = "y_pred"
 
         if is_random:
@@ -70,6 +72,13 @@ class BaseModel(nn.Module):
                             ranked_list = faulty_nodes
                             rootcause_indices = [i for i, value in enumerate(rootcause_gt[idx]) if value == 1]
 
+                            # for Avg-top
+                            rank_sum = 0  
+                            for rc_index in rootcause_indices:
+                                rank_sum += (ranked_list.index(rc_index) + 1) 
+                            avg_top = rank_sum / len(rootcause_indices)
+                            avg_avg_top += avg_top 
+                              
                             k = len(rootcause_indices)
                             top_k_ranked_list = ranked_list[:k]
 
@@ -81,6 +90,16 @@ class BaseModel(nn.Module):
                             my_metric = count / k  
                             avg_my_metric += my_metric
 
+                            top_1_ranked_list = ranked_list[:1]
+                            for index in top_1_ranked_list:
+                                if index in rootcause_indices:
+                                    A_1 += 1
+                            top_3_ranked_list = ranked_list[:3]
+                            for index in top_3_ranked_list:
+                                if index in rootcause_indices:
+                                    A_3 += 1
+                                    break
+
                 epoch_loss += res["loss"].item()
                 batch_cnt += 1
 
@@ -91,13 +110,19 @@ class BaseModel(nn.Module):
         precision = TP*1.0/(TP+FP) if (TP+FP) > 0 else 0
         f1 = (2.0*recall*precision)/(precision+recall) if (precision+recall) > 0 else 0
         avg_my_metric = avg_my_metric / TP
+        avg_avg_top = avg_avg_top / TP 
+        A_1 = A_1 / TP
+        A_3 = A_3 / TP 
 
         eval_results = {
                 "loss": epoch_loss,
                 "F1": f1,
                 "Rec": recall,
                 "Pre": precision,
-                "My metric":avg_my_metric} 
+                "My_metric":avg_my_metric,
+                "Avg_top":avg_avg_top,
+                "A@1": A_1,
+                "A@3": A_3} 
 
         logging.info("{} -- {}".format(datatype, ", ".join([k+": "+str(f"{v:.4f}") for k, v in eval_results.items()])))
 
@@ -106,7 +131,7 @@ class BaseModel(nn.Module):
     def fit(self, train_loader, test_loader=None, evaluation_epoch=1):
     ## initializing the fit function
 
-        best_f1, coverage, best_state, eval_res = -1, None, None, None # evaluation
+        best_value, coverage, best_state, eval_res = -1, None, None, None # evaluation
         pre_loss, worse_count = float("inf"), 0 # early break
 
         optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
@@ -141,13 +166,13 @@ class BaseModel(nn.Module):
             ####### Evaluate test data during training #######
             if (epoch+1) % evaluation_epoch == 0:
                 test_results = self.evaluate(test_loader, datatype="Test")
-                if test_results["F1"] > best_f1:
-                    best_f1, eval_res, coverage  = test_results["F1"], test_results, epoch
+                if test_results["My_metric"] > best_value:
+                    best_value, eval_res, coverage  = test_results["My_metric"], test_results, epoch
                     best_state = copy.deepcopy(self.model.state_dict())
                 self.save_model(best_state)
 
         if coverage > 5:
-            logging.info("* Best result got at epoch {} with Mymetric: {:.4f}".format(coverage, best_f1))
+            logging.info("* Best result got at epoch {} with Mymetric: {:.4f}".format(coverage, best_value))
         else:
             logging.info("Unable to convergence!")
 

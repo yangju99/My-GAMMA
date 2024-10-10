@@ -88,17 +88,17 @@ def run(params):
     device = get_device(params["check_device"])
     model = BaseModel(nodes, device, normal_avg, lr = params["learning_rate"], **params)
 
-    #For testing!!
-    model.load_model("./results/3855e80a/model.ckpt")
-    eval_result = model.evaluate(test_dl, datatype="Test")
-    eval_result = model.evaluate(test_dl, is_random=True, datatype="Test") #testing random ranked list 
 
-    # #For training!! 
-    # print("hash_id: ", hash_id)
-    # scores, converge = model.fit(train_dl, test_dl, evaluation_epoch= params['evaluation_epoch'])
-    # dump_scores(params["model_save_dir"], hash_id, scores, converge)
-    # logging.info("Current hash_id {}".format(hash_id))
+    #For training!! 
+    print("hash_id: ", hash_id)
+    scores, converge = model.fit(train_dl, test_dl, evaluation_epoch= params['evaluation_epoch'])
+    dump_scores(params["model_save_dir"], hash_id, scores, converge)
+    logging.info("Current hash_id {}".format(hash_id))
 
+    # #For testing!!
+    # model.load_model("./results/d07fe124/model.ckpt")
+    # eval_result = model.evaluate(test_dl, datatype="Test")
+    # eval_result = model.evaluate(test_dl, is_random=True, datatype="Test") #testing random ranked list 
 
 def normal_status_average(train_data):
     result = {}
@@ -159,7 +159,7 @@ if __name__ == "__main__":
     nodes = 30
     batch_size = 256
     random_seed = 12345
-    epochs = 50
+    epochs = 12
     learning_rate = 0.001 
     model = "all"
     result_dir = "./results"
