@@ -89,16 +89,16 @@ def run(params):
     model = BaseModel(nodes, device, normal_avg, lr = params["learning_rate"], **params)
 
 
-    #For training!! 
-    print("hash_id: ", hash_id)
-    scores, converge = model.fit(train_dl, test_dl, evaluation_epoch= params['evaluation_epoch'])
-    dump_scores(params["model_save_dir"], hash_id, scores, converge)
-    logging.info("Current hash_id {}".format(hash_id))
+    # #For training!! 
+    # print("hash_id: ", hash_id)
+    # scores, converge = model.fit(train_dl, test_dl, evaluation_epoch= params['evaluation_epoch'])
+    # dump_scores(params["model_save_dir"], hash_id, scores, converge)
+    # logging.info("Current hash_id {}".format(hash_id))
 
-    # #For testing!!
-    # model.load_model("./results/d07fe124/model.ckpt")
-    # eval_result = model.evaluate(test_dl, datatype="Test")
-    # eval_result = model.evaluate(test_dl, is_random=True, datatype="Test") #testing random ranked list 
+    #For testing!!
+    model.load_model("./results/d07fe124/model.ckpt")
+    eval_result = model.evaluate(test_dl, datatype="Test")
+    eval_result = model.evaluate(test_dl, is_random=True, datatype="Test") #testing random ranked list 
 
 def normal_status_average(train_data):
     result = {}

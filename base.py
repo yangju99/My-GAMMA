@@ -53,6 +53,12 @@ class BaseModel(nn.Module):
         A_1, A_3 = 0, 0 
         pred_type = "y_pred"
 
+        ##### for prelimanary experiment ###################
+        rootcause_avg_diff = 0
+        normal_avg_diff = 0
+        #####################################################
+
+
         if is_random:
             pred_type = "random_y_pred"
             
@@ -60,6 +66,7 @@ class BaseModel(nn.Module):
             for graph, anomaly_gt, rootcause_gt in tqdm(test_loader, desc = "Testing progress"): #rootcause_gt = batchsize *[1,0,1,0,0 ...] len(rootcause_gt) = node_num 
 
                 res = self.model.forward(graph.to(self.device), anomaly_gt, rootcause_gt)
+
                 for idx, faulty_nodes in enumerate(res[pred_type]): #res['y_pred']는 anomaly 가 없다면 -1, 있다고 판단하면 RC node index list 를 값으로 가짐  
                     is_anomaly = anomaly_gt[idx].item()
                     if is_anomaly == 0:
@@ -102,8 +109,16 @@ class BaseModel(nn.Module):
 
                 epoch_loss += res["loss"].item()
                 batch_cnt += 1
+                ##### for prelimanary experiment ###################
+                rootcause_avg_diff += res['rootcause_avg_diff'].item()
+                normal_avg_diff += res['normal_avg_diff'].item() 
+                #####################################################
 
             epoch_loss = epoch_loss / batch_cnt
+            rootcause_avg_diff = rootcause_avg_diff / batch_cnt 
+            normal_avg_diff = normal_avg_diff / batch_cnt 
+
+
 
         pos = TP+FN
         recall = TP*1.0/pos if pos > 0 else 0
@@ -122,7 +137,9 @@ class BaseModel(nn.Module):
                 "My_metric":avg_my_metric,
                 "Avg_top":avg_avg_top,
                 "A@1": A_1,
-                "A@3": A_3} 
+                "A@3": A_3,
+                "rootcause_avg_diff": rootcause_avg_diff,
+                "normal_avg_diff": normal_avg_diff} 
 
         logging.info("{} -- {}".format(datatype, ", ".join([k+": "+str(f"{v:.4f}") for k, v in eval_results.items()])))
 

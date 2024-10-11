@@ -333,8 +333,8 @@ class MainModel(nn.Module):
         self.encoder = MultiSourceEncoder(self.node_num, device, alpha=alpha, **kwargs)
         self.normal_avg = normal_avg
 
-        #self.detector_criterion = nn.CrossEntropyLoss()
-        self.detector_criterion = nn.CrossEntropyLoss(torch.FloatTensor(self.weight_loss).to(device))
+        self.detector_criterion = nn.CrossEntropyLoss()
+        #self.detector_criterion = nn.CrossEntropyLoss(torch.FloatTensor(self.weight_loss).to(device))
         self.detector = FullyConnected(self.encoder.feat_out_dim, 2, [64, 64]).to(device)
         self.get_prob = nn.Softmax(dim=-1)
 
@@ -357,9 +357,9 @@ class MainModel(nn.Module):
 
         #test 시에는 Rootcause localization task에 대한 성능 평가를 위해 RC inference를 해야 함 
         if only_train == False:
-            y_pred = self.inference(graph, prob_logits, rootcause_gt)
+            y_pred, rootcause_avg_diff, normal_avg_diff  = self.inference(graph, prob_logits, rootcause_gt)
             random_y_pred =  self.random_inference(graph, prob_logits, rootcause_gt)
-            return {'loss': loss,'y_pred': y_pred, 'random_y_pred': random_y_pred}
+            return {'loss': loss,'y_pred': y_pred, 'random_y_pred': random_y_pred, 'rootcause_avg_diff': rootcause_avg_diff,'normal_avg_diff': normal_avg_diff}
 
         #train 시에는 anomaly detection task에 대해서만 학습하면 됨
         else:
@@ -370,6 +370,13 @@ class MainModel(nn.Module):
         batch_size = graph.batch_size
 
         y_pred = []
+
+        ##### for prelimanary experiment ###################
+        rootcause_avg_diff = 0 
+        normal_avg_diff = 0
+
+        #####################################################
+
 
         detect_pred = prob_logits.argmax(axis=1).squeeze() 
         graph_list = dgl.unbatch(graph)
@@ -392,11 +399,30 @@ class MainModel(nn.Module):
 
                 diff_list = original_prob_logits[:, 1] - masked_prob_logit[ : ,1] #original anomaly 확률 값 - masked anomaly 확률값의 차이, 이것이 클수록 mask된 노드가 RC일 확률 높음
 
+                ##### for prelimanary experiment #######################################################
+                if sum(rootcause_gt[i]) != 0: # TP일때 
+                    rootcause_indices = [i for i, value in enumerate(rootcause_gt[i]) if value == 1]
+                    normal_indices = [i for i, value in enumerate(rootcause_gt[i]) if value == 0]
+                    rootcause_diff = sum([diff_list[i] for i in rootcause_indices]) / len(rootcause_indices)
+                    normal_diff = sum([diff_list[i] for i in normal_indices]) / len(normal_indices)
+                    
+
+                    rootcause_avg_diff += rootcause_diff
+                    normal_avg_diff += normal_diff
+                #########################################################################################
+
+
                 ranked_list = sorted(range(len(diff_list)), key=lambda i: diff_list[i], reverse=True)
 
                 y_pred.append(ranked_list)
 
-        return y_pred
+        ##### for prelimanary experiment ###################
+        rootcause_avg_diff = rootcause_avg_diff / batch_size
+        normal_avg_diff = normal_avg_diff / batch_size 
+
+        #####################################################
+    
+        return y_pred, rootcause_avg_diff, normal_avg_diff 
 
     def random_inference(self,graph, prob_logits, rootcause_gt):
         batch_size = graph.batch_size

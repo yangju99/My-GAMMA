@@ -1,28 +1,12 @@
-2024-10-10 02:02:47,088 P124788 INFO Data loaded successfully!
-2024-10-10 02:02:47,098 P124788 INFO Using GPU...
-2024-10-10 02:03:13,293 P124788 INFO Epoch 1/12, training loss: 0.49215 [25.70s]
-2024-10-10 02:06:04,059 P124788 INFO Test -- loss: 0.4363, F1: 0.7062, Rec: 0.8876, Pre: 0.5864, My_metric: 0.4740, Avg_top: 12.8259, A@1: 0.7820, A@3: 0.9963
-2024-10-10 02:06:25,747 P124788 INFO Epoch 2/12, training loss: 0.41007 [21.68s]
-2024-10-10 02:07:55,063 P124788 INFO Test -- loss: 0.4345, F1: 0.7375, Rec: 0.6667, Pre: 0.8252, My_metric: 0.5193, Avg_top: 11.1248, A@1: 0.9745, A@3: 0.9938
-2024-10-10 02:08:17,021 P124788 INFO Epoch 3/12, training loss: 0.37818 [21.95s]
-2024-10-10 02:10:13,588 P124788 INFO Test -- loss: 0.3899, F1: 0.7962, Rec: 0.8276, Pre: 0.7670, My_metric: 0.5078, Avg_top: 11.9803, A@1: 0.8341, A@3: 0.9697
-2024-10-10 02:10:36,885 P124788 INFO Epoch 4/12, training loss: 0.35581 [23.29s]
-2024-10-10 02:12:17,100 P124788 INFO Test -- loss: 0.3518, F1: 0.8071, Rec: 0.7830, Pre: 0.8328, My_metric: 0.4536, Avg_top: 13.2565, A@1: 0.8760, A@3: 0.8991
-2024-10-10 02:12:38,803 P124788 INFO Epoch 5/12, training loss: 0.35422 [21.70s]
-2024-10-10 02:14:30,031 P124788 INFO Test -- loss: 0.3623, F1: 0.8083, Rec: 0.8395, Pre: 0.7793, My_metric: 0.4493, Avg_top: 13.6282, A@1: 0.8278, A@3: 0.9367
-2024-10-10 02:14:51,792 P124788 INFO Epoch 6/12, training loss: 0.32405 [21.75s]
-2024-10-10 02:16:53,988 P124788 INFO Test -- loss: 0.3918, F1: 0.8092, Rec: 0.8590, Pre: 0.7649, My_metric: 0.4553, Avg_top: 13.0273, A@1: 0.9061, A@3: 0.9461
-2024-10-10 02:17:16,997 P124788 INFO Epoch 7/12, training loss: 0.30950 [23.00s]
-2024-10-10 02:19:57,928 P124788 INFO Test -- loss: 0.4088, F1: 0.7692, Rec: 0.9413, Pre: 0.6503, My_metric: 0.4417, Avg_top: 13.5563, A@1: 0.8770, A@3: 0.9081
-2024-10-10 02:20:21,508 P124788 INFO Epoch 8/12, training loss: 0.30669 [23.57s]
-2024-10-10 02:22:42,595 P124788 INFO Test -- loss: 0.3918, F1: 0.7910, Rec: 0.9255, Pre: 0.6906, My_metric: 0.4408, Avg_top: 13.5048, A@1: 0.8882, A@3: 0.9359
-2024-10-10 02:23:04,512 P124788 INFO Epoch 9/12, training loss: 0.29829 [21.91s]
-2024-10-10 02:25:13,447 P124788 INFO Test -- loss: 0.3733, F1: 0.8182, Rec: 0.8691, Pre: 0.7729, My_metric: 0.4489, Avg_top: 13.3685, A@1: 0.8356, A@3: 0.9162
-2024-10-10 02:25:37,109 P124788 INFO Epoch 10/12, training loss: 0.29623 [23.66s]
-2024-10-10 02:28:12,055 P124788 INFO Test -- loss: 0.3803, F1: 0.7878, Rec: 0.9224, Pre: 0.6875, My_metric: 0.3790, Avg_top: 15.1756, A@1: 0.8507, A@3: 0.9033
-2024-10-10 02:28:34,612 P124788 INFO Epoch 11/12, training loss: 0.29108 [22.55s]
-2024-10-10 02:31:23,977 P124788 INFO Test -- loss: 0.4302, F1: 0.7440, Rec: 0.9405, Pre: 0.6154, My_metric: 0.4387, Avg_top: 13.6549, A@1: 0.7263, A@3: 0.9354
-2024-10-10 02:31:49,180 P124788 INFO Epoch 12/12, training loss: 0.28495 [25.20s]
-2024-10-10 02:34:00,634 P124788 INFO Test -- loss: 0.3616, F1: 0.8107, Rec: 0.8768, Pre: 0.7539, My_metric: 0.4248, Avg_top: 14.1598, A@1: 0.8176, A@3: 0.9002
-2024-10-10 02:34:00,640 P124788 INFO Unable to convergence!
-2024-10-10 02:34:00,641 P124788 INFO Current hash_id c2d4beb8
+2024-10-11 03:21:07,294 P1671515 INFO Data loaded successfully!
+2024-10-11 03:21:07,296 P1671515 INFO Using CPU...
+2024-10-11 03:23:28,920 P1671515 INFO Test -- loss: 0.3824, F1: 0.7372, Rec: 0.6407, Pre: 0.8679, My_metric: 0.5515, Avg_top: 10.5721, A@1: 0.9702, A@3: 0.9961
+2024-10-11 03:25:57,001 P1671515 INFO Test -- loss: 0.3824, F1: 0.7372, Rec: 0.6407, Pre: 0.8679, My_metric: 0.3009, Avg_top: 15.5190, A@1: 0.3072, A@3: 0.6390
+2024-10-11 03:30:41,352 P1682223 INFO Data loaded successfully!
+2024-10-11 03:30:41,354 P1682223 INFO Using CPU...
+2024-10-11 03:49:57,903 P1702700 INFO Data loaded successfully!
+2024-10-11 03:49:57,905 P1702700 INFO Using CPU...
+2024-10-11 03:51:47,218 P546 INFO Data loaded successfully!
+2024-10-11 03:51:47,228 P546 INFO Using GPU...
+2024-10-11 03:53:11,781 P546 INFO Test -- loss: 0.3824, F1: 0.7372, Rec: 0.6407, Pre: 0.8679, My_metric: 0.5506, Avg_top: 10.5783, A@1: 0.9702, A@3: 0.9961, rootcause_avg_diff: 0.0237, normal_avg_diff: 0.0001
+2024-10-11 03:54:31,618 P546 INFO Test -- loss: 0.3824, F1: 0.7372, Rec: 0.6407, Pre: 0.8679, My_metric: 0.3004, Avg_top: 15.4410, A@1: 0.3085, A@3: 0.6488, rootcause_avg_diff: 0.0237, normal_avg_diff: 0.0001
