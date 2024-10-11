@@ -159,7 +159,7 @@ if __name__ == "__main__":
     nodes = 30
     batch_size = 256
     random_seed = 12345
-    epochs = 12
+    epochs = 10
     learning_rate = 0.001 
     model = "all"
     result_dir = "./results"

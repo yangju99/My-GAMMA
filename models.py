@@ -460,10 +460,10 @@ class MainModel(nn.Module):
         unmaksed_index = list(range(self.node_num))
         unmaksed_index.remove(node_index) 
 
-
         # 남은 노드들로부터 새로운 서브그래프를 생성합니다.
         subgraph = dgl.node_subgraph(graph, unmaksed_index)
 
+        pdb.set_trace()
         return subgraph
 
 
@@ -486,6 +486,24 @@ class MainModel(nn.Module):
         return subgraph
 
     def normal_masking(self, graph, node_index):
+        subgraph = graph.clone()
+
+        subgraph.ndata['latency'] = copy.deepcopy(graph.ndata['latency'])
+        subgraph.ndata['container_cpu_usage_seconds_total'] = copy.deepcopy(graph.ndata['container_cpu_usage_seconds_total'])
+        subgraph.ndata['container_network_transmit_bytes_total'] = copy.deepcopy(graph.ndata['container_network_transmit_bytes_total'])
+        subgraph.ndata['container_network_receive_bytes_total'] = copy.deepcopy(graph.ndata['container_network_receive_bytes_total'])
+        subgraph.ndata['container_memory_usage_bytes'] = copy.deepcopy(graph.ndata['container_memory_usage_bytes'])
+
+        # 변경하고자 하는 노드의 데이터를 업데이트
+        subgraph.ndata['latency'][node_index] = self.normal_avg['avg_latency'][node_index].clone() 
+        subgraph.ndata['container_cpu_usage_seconds_total'][node_index] = self.normal_avg['avg_cpu'][node_index].clone() 
+        subgraph.ndata['container_network_transmit_bytes_total'][node_index] = self.normal_avg['avg_network_out'][node_index].clone() 
+        subgraph.ndata['container_network_receive_bytes_total'][node_index] = self.normal_avg['avg_network_in'][node_index].clone() 
+        subgraph.ndata['container_memory_usage_bytes'][node_index] = self.normal_avg['avg_memory'][node_index].clone() 
+
+        return subgraph
+
+    def neighbor_masking(self, graph, node_index):
         subgraph = graph.clone()
 
         subgraph.ndata['latency'] = copy.deepcopy(graph.ndata['latency'])
