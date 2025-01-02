@@ -44,3 +44,9 @@
 2024-10-11 07:17:25,931 P119330 INFO Test -- loss: 0.3824, F1: 0.7372, Rec: 0.6407, Pre: 0.8679, My_metric: 0.3008, Avg_top: 15.4900, A@1: 0.3082, A@3: 0.6416, rootcause_avg_diff: 0.0237, normal_avg_diff: 0.0001
 2024-10-11 07:37:46,559 P131863 INFO Data loaded successfully!
 2024-10-11 07:37:46,570 P131863 INFO Using GPU...
+2024-12-30 05:27:42,820 P8915 INFO Data loaded successfully!
+2024-12-30 05:27:42,832 P8915 INFO Using GPU...
+2024-12-30 05:29:02,643 P9681 INFO Data loaded successfully!
+2024-12-30 05:29:02,652 P9681 INFO Using GPU...
+2024-12-30 05:30:27,837 P9681 INFO Test -- loss: 0.3824, F1: 0.7372, Rec: 0.6407, Pre: 0.8679, My_metric: 0.5506, Avg_top: 10.5783, A@1: 0.9702, A@3: 0.9961, rootcause_avg_diff: 0.0237, normal_avg_diff: 0.0001
+2024-12-30 05:31:50,284 P9681 INFO Test -- loss: 0.3824, F1: 0.7372, Rec: 0.6407, Pre: 0.8679, My_metric: 0.3006, Avg_top: 15.5833, A@1: 0.2888, A@3: 0.6248, rootcause_avg_diff: 0.0237, normal_avg_diff: 0.0001

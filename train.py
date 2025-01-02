@@ -8,6 +8,7 @@ import logging
 from base import BaseModel
 import time
 from utils import *
+import pandas as pd 
 
 import pdb 
 
@@ -44,7 +45,32 @@ class chunkDataset(Dataset): #[node_num, T]
     def __get_chunk_id__(self, idx):
         return self.idx2id[idx]
 
+
+def parse_call_paths(file_path):
+    call_paths = {}
+    with open(file_path, 'r') as file:
+        for index, line in enumerate(file):
+            path = list(map(int, line.strip().split('->')))
+            call_paths[index] = path
+
+    return call_paths
+
+def parse_placements(placement_file):
+    place_df = pd.read_csv(placement_file)
+    place_df.columns = ['microservice_index', 'service_name', 'vm_index']
+    vm_mapping = place_df.groupby('vm_index')['microservice_index'].apply(list).to_dict()
+    
+    return vm_mapping
+
 def run(params):
+
+    call_path_file = params['call_path_file']
+    call_paths = parse_call_paths(call_path_file)
+    params['call_paths'] = call_paths 
+    
+    placement_file = params['placement_file']
+    placements = parse_placements(placement_file)
+    params['placements'] = placements
 
     train_file = params["train_file"]
     with open(train_file, 'rb') as tr:
@@ -171,6 +197,9 @@ if __name__ == "__main__":
     test_file = "../data/test_data.pkl"
     metadata_json = "../data/metadata.json"
 
+    call_path_file = "/root/projects/gamma/metadata/graph_path.txt"
+    placement_file = "/root/projects/gamma/metadata/compose_ids.csv"
+
     features = ["latency", "container_cpu_usage_seconds_total", "container_memory_usage_bytes", 
                 "container_network_transmit_bytes_total", "container_network_receive_bytes_total"]
 
@@ -186,7 +215,9 @@ if __name__ == "__main__":
             'model_save_dir': result_dir,
             'chunk_length' : chunk_length,
             'epochs' : epochs,
-            'evaluation_epoch': evaluation_epoch
+            'evaluation_epoch': evaluation_epoch,
+            'call_path_file':call_path_file,
+            'placement_file':placement_file
     }     
 
     run(params)

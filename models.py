@@ -338,6 +338,9 @@ class MainModel(nn.Module):
         self.detector = FullyConnected(self.encoder.feat_out_dim, 2, [64, 64]).to(device)
         self.get_prob = nn.Softmax(dim=-1)
 
+        self.call_paths = kwargs['call_paths']
+        self.placements = kwargs['placements']
+
 
 
     def forward(self, graph, anomaly_gt, rootcause_gt, only_train=False):  
@@ -359,7 +362,7 @@ class MainModel(nn.Module):
         if only_train == False:
             y_pred, rootcause_avg_diff, normal_avg_diff  = self.inference(graph, prob_logits, rootcause_gt)
             random_y_pred =  self.random_inference(graph, prob_logits, rootcause_gt)
-            return {'loss': loss,'y_pred': y_pred, 'random_y_pred': random_y_pred, 'rootcause_avg_diff': rootcause_avg_diff,'normal_avg_diff': normal_avg_diff}
+            return {'loss': loss,'y_pred': y_pred, 'random_y_pred': random_y_pred, 'rootcause_avg_diff': rootcause_avg_diff,'normal_avg_diff': normal_avg_diff}          
 
         #train 시에는 anomaly detection task에 대해서만 학습하면 됨
         else:
@@ -388,7 +391,7 @@ class MainModel(nn.Module):
             else: #anomaly 가 있다면?
                 current_graph = graph_list[i]
 
-                masked_graph_list = self.generate_masked_graphs(current_graph)
+                masked_graph_list = self.generate_masked_graphs(current_graph, "node")
                 masked_graph_batch = dgl.batch(masked_graph_list)
 
                 masked_embeddings = self.encoder(masked_graph_batch)
@@ -442,17 +445,29 @@ class MainModel(nn.Module):
 
         return y_pred
 
-    def generate_masked_graphs(self, graph):
+
+#병렬 처리를 위함. 
+    def generate_masked_graphs(self, graph, mask_type="node"):
         masked_graphs = [] 
-        
-        for i in range(self.node_num):
-            masked_graph = self.masking(graph, i)
-            #masked_graph = self.zero_masking(graph, i)
-            #masked_graph = self.normal_masking(graph, i)
-            masked_graphs.append(masked_graph)
 
+        if mask_type == "node":
+            for i in range(self.node_num):
+                masked_graph = self.masking(graph, i)
+                masked_graphs.append(masked_graph)
+
+        elif mask_type == "path":
+            for path_index in self.call_paths.keys():
+                node_indexs = self.call_paths[path_index]
+                masked_graph = self.path_masking(graph,node_indexs)
+                masked_graphs.append(masked_graph)
+
+        else: #mask_type = place 
+            for vm_index in self.placements.keys():
+                node_indexs = self.placements[vm_index]
+                masked_graph = self.place_masking(graph, node_indexs)
+                masked_graphs.append(masked_graph)
+            
         return masked_graphs
-
 
 
     def masking(self, graph, node_index):
@@ -463,7 +478,26 @@ class MainModel(nn.Module):
         # 남은 노드들로부터 새로운 서브그래프를 생성합니다.
         subgraph = dgl.node_subgraph(graph, unmaksed_index)
 
-        pdb.set_trace()
+        return subgraph
+
+#해당 call path 에 있는 마이크로서비스들 subgraph 단위로 masking 
+    def path_masking(self, graph, node_indexs):
+
+        unmaksed_index = [i for i in range(self.node_num) if i not in node_indexes]
+
+        # 남은 노드들로부터 새로운 서브그래프를 생성합니다.
+        subgraph = dgl.node_subgraph(graph, unmaksed_index)
+
+        return subgraph
+
+# vm 에 deploy된 마이크로서비스들 함께 masking 
+    def place_masking(self, graph, node_indexs):
+
+        unmaksed_index = [i for i in range(self.node_num) if i not in node_indexes]
+
+        # 남은 노드들로부터 새로운 서브그래프를 생성합니다.
+        subgraph = dgl.node_subgraph(graph, unmaksed_index)
+
         return subgraph
 
 
