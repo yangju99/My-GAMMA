@@ -52,8 +52,12 @@ class ConvNet(nn.Module):
         
     
     def forward(self, x): #[batch_size, T, in_dim]
+
         x = x.permute(0,2,1) #[batch_size, out_dim, T]
+
         out = self.network(x)
+
+
         out = out.permute(0, 2, 1) #[batch_size, T, out_dim]
 
         return out
@@ -75,10 +79,15 @@ class SelfAttention(nn.Module):
     def forward(self, x):
         # x: [batch_size, window_size, input_size]
         input_tensor = x.transpose(1, 0)  # w x b x h
+
         input_tensor = (torch.bmm(input_tensor, self.atten_w) + self.atten_bias)  # w x b x out
+
         input_tensor = input_tensor.transpose(1, 0)
+
         atten_weight = input_tensor.tanh()
+
         weighted_sum = torch.bmm(atten_weight.transpose(1, 2), x).squeeze()
+
         return weighted_sum
 
     def glorot(self, tensor):
@@ -117,13 +126,14 @@ class LatencyModel(nn.Module):
         
 
     def forward(self, x):  # [bz, T, input_dim]
+
         hidden_states = self.net(x)
         
         if self.self_attn: 
             hidden_states_after_self_attention = self.attn_layer(hidden_states)
             
             return hidden_states_after_self_attention
-        
+
         return hidden_states[:, -1, :]  # [bz, out_dim]
     
 class CpuModel(nn.Module):
@@ -229,7 +239,7 @@ class NetworkInModel(nn.Module):
         return hidden_states[:, -1, :]  # [bz, out_dim]
 
 class GraphModel(nn.Module):
-    def __init__(self, in_dim, graph_hiddens=[64, 128], device='cpu', attn_head=4, activation=0.2, **kwargs):
+    def __init__(self, in_dim, graph_hiddens=[64, 128], device='cpu', attn_head=4, activation=0.2, **kwargs): #hidden layer 를
         super(GraphModel, self).__init__()
         '''
         Params:
@@ -291,13 +301,15 @@ class MultiSourceEncoder(nn.Module):
         if not fuse_dim % 2 == 0: fuse_dim += 1
         self.fuse = nn.Linear(fuse_in, fuse_dim)
 
-        self.activate = nn.GLU()
+        self.activate = nn.GLU() # GLU는 출력차원이 절반으로 줄어듦 
         self.feat_in_dim = int(fuse_dim // 2)
 
-        self.status_model = GraphModel(in_dim=self.feat_in_dim, device=device, **kwargs)
+        self.status_model = GraphModel(in_dim=self.feat_in_dim, device=device, **kwargs) 
         self.feat_out_dim = self.status_model.out_dim
     
     def forward(self, graph):
+
+  
         latency_embedding = self.latency_model(graph.ndata['latency']) #[bz*node_num, T, trace_dim]
         #latency_embedding = latency_embedding.reshape(-1, latency_embedding.size(2))
 
@@ -313,9 +325,9 @@ class MultiSourceEncoder(nn.Module):
         networkin_embedding = self.networkin_model(graph.ndata["container_network_receive_bytes_total"]) #[bz*node_num, T, trace_dim]
         #networkin_embedding = networkin_embedding.reshape(-1, networkin_embedding.size(2))
 
-
         feature = self.activate(self.fuse(torch.cat((latency_embedding, cpu_embedding, memory_embedding, 
                                                      networkout_embedding, networkin_embedding), dim=-1))) #[bz*node_num, node_dim]
+        
 
         embeddings = self.status_model(graph, feature) #[bz, graph_dim]
         
@@ -329,7 +341,7 @@ class MainModel(nn.Module):
         self.device = device
         self.node_num = node_num
         self.alpha = alpha
-        self.weight_loss = kwargs['weight_loss']
+        self.weight_loss = kwargs['weight_loss'] # loss 함수에 weight를 줘서 데이터 불균형을 맞추기 위함
         self.encoder = MultiSourceEncoder(self.node_num, device, alpha=alpha, **kwargs)
         self.normal_avg = normal_avg
 
@@ -340,7 +352,6 @@ class MainModel(nn.Module):
 
         self.call_paths = kwargs['call_paths']
         self.placements = kwargs['placements']
-
 
 
     def forward(self, graph, anomaly_gt, rootcause_gt, only_train=False):  
@@ -358,11 +369,18 @@ class MainModel(nn.Module):
         loss = self.detector_criterion(detect_logits, y_window_anomaly)
         prob_logits = self.get_prob(detect_logits) 
 
-        #test 시에는 Rootcause localization task에 대한 성능 평가를 위해 RC inference를 해야 함 
-        if only_train == False:
+
+        #normal inference(node masking)
+        if only_train == False: #test 시에는 Rootcause localization task에 대한 성능 평가를 위해 RC inference를 해야 함 
             y_pred, rootcause_avg_diff, normal_avg_diff  = self.inference(graph, prob_logits, rootcause_gt)
             random_y_pred =  self.random_inference(graph, prob_logits, rootcause_gt)
             return {'loss': loss,'y_pred': y_pred, 'random_y_pred': random_y_pred, 'rootcause_avg_diff': rootcause_avg_diff,'normal_avg_diff': normal_avg_diff}          
+
+        # advanced inference(multi level masking)
+        # if only_train == False:
+        #     y_pred  = self.advanced_inference2(graph, prob_logits, rootcause_gt)
+        #     random_y_pred =  self.random_inference(graph, prob_logits, rootcause_gt)
+        #     return {'loss': loss,'y_pred': y_pred, 'random_y_pred': random_y_pred}   
 
         #train 시에는 anomaly detection task에 대해서만 학습하면 됨
         else:
@@ -391,7 +409,7 @@ class MainModel(nn.Module):
             else: #anomaly 가 있다면?
                 current_graph = graph_list[i]
 
-                masked_graph_list = self.generate_masked_graphs(current_graph, "node")
+                masked_graph_list, _ = self.generate_masked_graphs(current_graph, "node")
                 masked_graph_batch = dgl.batch(masked_graph_list)
 
                 masked_embeddings = self.encoder(masked_graph_batch)
@@ -427,6 +445,136 @@ class MainModel(nn.Module):
     
         return y_pred, rootcause_avg_diff, normal_avg_diff 
 
+
+    def advanced_inference(self,graph, prob_logits, rootcause_gt):
+        batch_size = graph.batch_size
+
+        y_pred = []
+
+        detect_pred = prob_logits.argmax(axis=1).squeeze() 
+        graph_list = dgl.unbatch(graph)
+        
+        for i in range(batch_size):
+            if detect_pred[i] < 1: 
+                y_pred.append([-1]) #anomaly 가 없으면 -1 값 
+
+            else: #anomaly 가 있다면?
+                rootcause_scores = [0 for _ in range(self.node_num)] #여기에 3가지 masking 기법을 통해 얻어진 anomaly score diff 가 integrated 됨 
+                current_graph = graph_list[i]
+
+                # placement masking 
+                masked_graph_list, masked_node_lists = self.generate_masked_graphs(current_graph, "place") 
+                masked_graph_batch = dgl.batch(masked_graph_list)
+
+                masked_embeddings = self.encoder(masked_graph_batch)
+                masked_detect_logit = self.detector(masked_embeddings)
+                masked_prob_logit = self.get_prob(masked_detect_logit)
+                
+                original_prob_logits = prob_logits[i].repeat(len(self.placements),1)
+
+                diff_list = original_prob_logits[:, 1] - masked_prob_logit[ : ,1] #original anomaly 확률 값 - masked anomaly 확률값의 차이, 이것이 클수록 mask된 노드가 RC일 확률 높음
+
+                for i in range(len(self.placements)):
+                    node_indexs = masked_node_lists[i]
+                    for node_index in node_indexs:
+                        rootcause_scores[node_index] += diff_list[i]
+
+                # path masking, 중복되는 노드들이 있으므로 avg 로 해야함 
+                # masked_graph_list, masked_node_lists = self.generate_masked_graphs(current_graph, "path") 
+                # masked_graph_batch = dgl.batch(masked_graph_list)
+
+                # masked_embeddings = self.encoder(masked_graph_batch)
+                # masked_detect_logit = self.detector(masked_embeddings)
+                # masked_prob_logit = self.get_prob(masked_detect_logit)
+                
+                # original_prob_logits = prob_logits[i].repeat(len(self.call_paths),1)
+
+                # diff_list = original_prob_logits[:, 1] - masked_prob_logit[ : ,1] #original anomaly 확률 값 - masked anomaly 확률값의 차이, 이것이 클수록 mask된 노드가 RC일 확률 높음
+
+                # temp = [[] for _ in range(self.node_num)]
+
+                # for i in range(len(self.call_paths)):
+                #     node_indexs = masked_node_lists[i]
+                #     for node_index in node_indexs: # path에 포함되는 노드들 순회
+                #         temp[node_index].append(diff_list[i].item())
+
+                # for node_index in range(self.node_num):
+                #     values = temp[node_index]
+                #     rootcause_scores[node_index] += np.mean(values)
+
+                # node masking
+                # masked_graph_list, masked_node_lists = self.generate_masked_graphs(current_graph, "node") 
+                # masked_graph_batch = dgl.batch(masked_graph_list)
+
+                # masked_embeddings = self.encoder(masked_graph_batch)
+                # masked_detect_logit = self.detector(masked_embeddings)
+                # masked_prob_logit = self.get_prob(masked_detect_logit)
+                
+                # original_prob_logits = prob_logits[i].repeat(self.node_num,1)
+
+                # diff_list = original_prob_logits[:, 1] - masked_prob_logit[ : ,1] #original anomaly 확률 값 - masked anomaly 확률값의 차이, 이것이 클수록 mask된 노드가 RC일 확률 높음
+
+                # for i in range(self.node_num):
+                #     node_indexs = masked_node_lists[i]
+                #     for node_index in node_indexs:
+                #         rootcause_scores[node_index] += diff_list[i]
+
+
+                #get ranked list from rootcause score
+                temp = sorted(list(enumerate(rootcause_scores)), key=lambda x: x[1], reverse=True)
+                ranked_list = [index for index, _ in temp]
+
+                y_pred.append(ranked_list)
+
+        return y_pred
+
+    def advanced_inference2(self,graph, prob_logits, rootcause_gt):
+        batch_size = graph.batch_size
+
+        y_pred = []
+
+        detect_pred = prob_logits.argmax(axis=1).squeeze() 
+        graph_list = dgl.unbatch(graph)
+        
+        for i in range(batch_size):
+            if detect_pred[i] < 1: 
+                y_pred.append([-1]) #anomaly 가 없으면 -1 값 
+
+            else: #anomaly 가 있다면?
+                rootcause_scores = [0 for _ in range(self.node_num)] 
+                current_graph = graph_list[i]
+
+
+                # node masking
+                masked_graph_list, masked_node_lists = self.generate_masked_graphs(current_graph, "node") 
+                masked_graph_batch = dgl.batch(masked_graph_list)
+
+                masked_embeddings = self.encoder(masked_graph_batch)
+                masked_detect_logit = self.detector(masked_embeddings)
+                masked_prob_logit = self.get_prob(masked_detect_logit)
+                
+                original_prob_logits = prob_logits[i].repeat(self.node_num,1)
+
+                diff_list = original_prob_logits[:, 1] - masked_prob_logit[ : ,1] #original anomaly 확률 값 - masked anomaly 확률값의 차이, 이것이 클수록 mask된 노드가 RC일 확률 높음
+
+                for i in range(len(self.placements)):
+                    node_indexs = masked_node_lists[i]
+                    max_value = -1 
+                    for node_index in node_indexs:
+                        if diff_list[node_index] > max_value:
+                            max_value = diff_list[node_index]
+                    for node_index in node_indexs:
+                        rootcause_scores[node_index] = max_value
+
+                #get ranked list from rootcause score
+                temp = sorted(list(enumerate(rootcause_scores)), key=lambda x: x[1], reverse=True)
+                ranked_list = [index for index, _ in temp]
+
+                y_pred.append(ranked_list)
+
+        return y_pred
+
+
     def random_inference(self,graph, prob_logits, rootcause_gt):
         batch_size = graph.batch_size
 
@@ -448,29 +596,35 @@ class MainModel(nn.Module):
 
 #병렬 처리를 위함. 
     def generate_masked_graphs(self, graph, mask_type="node"):
-        masked_graphs = [] 
+        masked_graphs = [] # 마스킹 된 그래프 리스트 
+        masked_node_lists = [] 
 
         if mask_type == "node":
             for i in range(self.node_num):
-                masked_graph = self.masking(graph, i)
+                masked_graph = self.node_masking(graph, i)
                 masked_graphs.append(masked_graph)
+                temp = []
+                temp.append(i)
+                masked_node_lists.append(temp)
 
         elif mask_type == "path":
             for path_index in self.call_paths.keys():
                 node_indexs = self.call_paths[path_index]
                 masked_graph = self.path_masking(graph,node_indexs)
                 masked_graphs.append(masked_graph)
+                masked_node_lists.append(node_indexs)
 
         else: #mask_type = place 
             for vm_index in self.placements.keys():
                 node_indexs = self.placements[vm_index]
                 masked_graph = self.place_masking(graph, node_indexs)
                 masked_graphs.append(masked_graph)
+                masked_node_lists.append(node_indexs)
             
-        return masked_graphs
+        return masked_graphs, masked_node_lists
 
 
-    def masking(self, graph, node_index):
+    def node_masking(self, graph, node_index):
 
         unmaksed_index = list(range(self.node_num))
         unmaksed_index.remove(node_index) 
@@ -483,7 +637,7 @@ class MainModel(nn.Module):
 #해당 call path 에 있는 마이크로서비스들 subgraph 단위로 masking 
     def path_masking(self, graph, node_indexs):
 
-        unmaksed_index = [i for i in range(self.node_num) if i not in node_indexes]
+        unmaksed_index = [i for i in range(self.node_num) if i not in node_indexs]
 
         # 남은 노드들로부터 새로운 서브그래프를 생성합니다.
         subgraph = dgl.node_subgraph(graph, unmaksed_index)
@@ -493,7 +647,7 @@ class MainModel(nn.Module):
 # vm 에 deploy된 마이크로서비스들 함께 masking 
     def place_masking(self, graph, node_indexs):
 
-        unmaksed_index = [i for i in range(self.node_num) if i not in node_indexes]
+        unmaksed_index = [i for i in range(self.node_num) if i not in node_indexs]
 
         # 남은 노드들로부터 새로운 서브그래프를 생성합니다.
         subgraph = dgl.node_subgraph(graph, unmaksed_index)

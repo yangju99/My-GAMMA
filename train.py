@@ -9,7 +9,6 @@ from base import BaseModel
 import time
 from utils import *
 import pandas as pd 
-
 import pdb 
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -22,7 +21,7 @@ class chunkDataset(Dataset): #[node_num, T]
         for idx, chunk in enumerate(chunks):
             chunk_id = chunk["window_id"]
             self.idx2id[idx] = chunk_id
-            graph = dgl.graph(edges)
+            graph = dgl.graph(edges, num_nodes = num_node)
             
             # (node_num, window_size)
             graph.ndata["latency"] = torch.FloatTensor(chunk["latency"])
@@ -56,8 +55,9 @@ def parse_call_paths(file_path):
     return call_paths
 
 def parse_placements(placement_file):
-    place_df = pd.read_csv(placement_file)
-    place_df.columns = ['microservice_index', 'service_name', 'vm_index']
+    place_df = pd.read_csv(placement_file, header=None)
+    place_df.columns = ['microservice_index', 'service_name', 'vm_index', 'node_type']
+
     vm_mapping = place_df.groupby('vm_index')['microservice_index'].apply(list).to_dict()
     
     return vm_mapping
@@ -83,6 +83,7 @@ def run(params):
     te.close()
 
     hash_id = dump_params(params)
+
     params["hash_id"] = hash_id
 
     # loss 함수에 weight를 반영하기 위함, anomlay 와 normal 데이터 셋 비율을 맞추는 대신 loss 함수 가중치를 통해 하려고 했음 
@@ -96,14 +97,22 @@ def run(params):
 
     params['weight_loss'] = normed_weights
 
-    metadata = read_json(params["metadata_json"])
-    source = [float(x) for x in metadata["source"]]
-    target = [float(x) for x in metadata["target"]]
 
+    # # edge 정보 load하기 
+    # # 1. placement 에서 physical relationship(edge)정보 추가 (양방향) 
+    # for vm_index, node_list in placements.items():
+    #     #node_list 안에 있는 노드끼리 양방향으로 edge 추가 
+        
+    # # 2. call path 에서 logical relationship(edge)정보 추가 (양방향)
+    # params['call_paths']
 
     edges = (source, target)
+
+    pdb.set_trace()
+
     train_data = chunkDataset(train_chunks, edges, params['nodes'])
     test_data = chunkDataset(test_chunks, edges, params['nodes'])
+
 
     normal_avg = extract_normal_status(train_data)
 
@@ -116,15 +125,15 @@ def run(params):
 
 
     # #For training!! 
-    # print("hash_id: ", hash_id)
-    # scores, converge = model.fit(train_dl, test_dl, evaluation_epoch= params['evaluation_epoch'])
-    # dump_scores(params["model_save_dir"], hash_id, scores, converge)
-    # logging.info("Current hash_id {}".format(hash_id))
+    print("hash_id: ", hash_id)
+    scores, converge = model.fit(train_dl, test_dl, evaluation_epoch= params['evaluation_epoch'])
+    dump_scores(params["model_save_dir"], hash_id, scores, converge)
+    logging.info("Current hash_id {}".format(hash_id))
 
     #For testing!!
-    model.load_model("./results/d07fe124/model.ckpt")
-    eval_result = model.evaluate(test_dl, datatype="Test")
-    eval_result = model.evaluate(test_dl, is_random=True, datatype="Test") #testing random ranked list 
+    # model.load_model("./results/d07fe124/model.ckpt")
+    # eval_result = model.evaluate(test_dl, datatype="Test")
+    # eval_result = model.evaluate(test_dl, is_random=True, datatype="Test") #testing random ranked list 
 
 def normal_status_average(train_data):
     result = {}
@@ -185,17 +194,16 @@ if __name__ == "__main__":
     nodes = 30
     batch_size = 256
     random_seed = 12345
-    epochs = 10
+    epochs = 30
     learning_rate = 0.001 
     model = "all"
     result_dir = "./results"
     each_modality_feature_num = 1 # 각각의 modality(latency, cpu ,, )마다 feature의 개수, 여기서는 모두 1
     chunk_length = 20 # window size 
-    evaluation_epoch = 1
+    evaluation_epoch = 3
 
     train_file = "../data/train_data.pkl"
     test_file = "../data/test_data.pkl"
-    metadata_json = "../data/metadata.json"
 
     call_path_file = "/root/projects/gamma/metadata/graph_path.txt"
     placement_file = "/root/projects/gamma/metadata/compose_ids.csv"
@@ -207,7 +215,6 @@ if __name__ == "__main__":
             'batch_size': batch_size,
             'train_file': train_file,
             'test_file': test_file,
-            'metadata_json': metadata_json,
             'learning_rate': learning_rate, 
             'model': 'all',
             'check_device': "gpu",

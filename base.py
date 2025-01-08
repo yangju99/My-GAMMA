@@ -109,10 +109,11 @@ class BaseModel(nn.Module):
 
                 epoch_loss += res["loss"].item()
                 batch_cnt += 1
-                ##### for prelimanary experiment ###################
-                rootcause_avg_diff += res['rootcause_avg_diff'].item()
-                normal_avg_diff += res['normal_avg_diff'].item() 
-                #####################################################
+                if 'rootcause_avg_diff' in res.keys():
+                    ##### for prelimanary experiment ###################
+                    rootcause_avg_diff += res['rootcause_avg_diff'].item()
+                    normal_avg_diff += res['normal_avg_diff'].item() 
+                    #####################################################
 
             epoch_loss = epoch_loss / batch_cnt
             rootcause_avg_diff = rootcause_avg_diff / batch_cnt 
@@ -183,13 +184,13 @@ class BaseModel(nn.Module):
             ####### Evaluate test data during training #######
             if (epoch+1) % evaluation_epoch == 0:
                 test_results = self.evaluate(test_loader, datatype="Test")
-                if test_results["My_metric"] > best_value:
-                    best_value, eval_res, coverage  = test_results["My_metric"], test_results, epoch
+                if test_results["F1"] > best_value:
+                    best_value, eval_res, coverage  = test_results["F1"], test_results, epoch
                     best_state = copy.deepcopy(self.model.state_dict())
                 self.save_model(best_state)
 
         if coverage > 5:
-            logging.info("* Best result got at epoch {} with Mymetric: {:.4f}".format(coverage, best_value))
+            logging.info("* Best result got at epoch {} with F1: {:.4f}".format(coverage, best_value))
         else:
             logging.info("Unable to convergence!")
 

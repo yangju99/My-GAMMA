@@ -9,6 +9,7 @@ import logging
 import dgl
 import inspect
 import pdb 
+from datetime import datetime
 
 def read_json(filepath):
     if os.path.exists(filepath):
@@ -89,6 +90,7 @@ def save_logits_as_dict(logits, keys, filename):
 import hashlib
 def dump_params(params):
     hash_id = hashlib.md5(str(sorted([(k, v) for k, v in params.items()])).encode("utf-8")).hexdigest()[0:8]
+    hash_id = hash_id + '_'+ datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     result_dir = os.path.join(params["model_save_dir"], hash_id)
     os.makedirs(result_dir, exist_ok=True)
 
@@ -117,33 +119,3 @@ def dump_scores(result_dir, hash_id, scores, converge):
 def json_pretty_dump(obj, filename):
     with open(filename, "w") as fw:
         json.dump(obj,fw, sort_keys=True, indent=4, separators=(",", ": "), ensure_ascii=False)
-
-
-# def anomaly_score_check(y_prob, score_diff_list):
-    
-#     pdb.set_trace() 
-#     normal_score = 0 
-#     normal_count = 0 
-#     rootcause_score = 0 
-#     rootcause_count = 0
-
-#     for i in range(len(score_diff_list)):
-#         if score_diff_list[i] == -1:
-#             continue 
-
-#         rc_gt = y_prob[i]
-#         diff_list = score_diff_list[i] 
-#         # TP 일때만 계산 
-#         if 1 in rc_gt: 
-#             for j in range(len(rc_gt)):
-#                 if rc_gt[j] == 0:
-#                     normal_score += diff_list[j]
-#                     normal_count += 1
-
-#                 else:
-#                     rootcause_score += diff_list[j]
-#                     rootcause_count += 1
-                
-        
-#     return normal_score/normal_count, rootcause_score/rootcause_count 
-

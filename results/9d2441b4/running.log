@@ -1,0 +1,24 @@
+2025-01-08 01:46:25,252 P1496579 INFO Data loaded successfully!
+2025-01-08 01:46:25,262 P1496579 INFO Using GPU...
+2025-01-08 01:46:50,177 P1496579 INFO Epoch 1/30, training loss: 0.46738 [24.43s]
+2025-01-08 01:47:13,785 P1496579 INFO Epoch 2/30, training loss: 0.39277 [23.61s]
+2025-01-08 01:48:56,174 P1496579 INFO Test -- loss: 0.4501, F1: 0.7667, Rec: 0.7301, Pre: 0.8072, My_metric: 0.5602, Avg_top: 10.8519, A@1: 0.8997, A@3: 0.9665, rootcause_avg_diff: 0.0166, normal_avg_diff: -0.0001
+2025-01-08 01:49:18,556 P1496579 INFO Epoch 3/30, training loss: 0.35707 [22.37s]
+2025-01-08 01:49:40,924 P1496579 INFO Epoch 4/30, training loss: 0.34066 [22.37s]
+2025-01-08 01:50:03,325 P1496579 INFO Epoch 5/30, training loss: 0.34293 [22.40s]
+2025-01-08 01:51:35,400 P1496579 INFO Test -- loss: 0.3834, F1: 0.7726, Rec: 0.7038, Pre: 0.8564, My_metric: 0.5551, Avg_top: 11.0097, A@1: 0.8647, A@3: 0.9346, rootcause_avg_diff: 0.0199, normal_avg_diff: -0.0002
+2025-01-08 01:51:57,651 P1496579 INFO Epoch 6/30, training loss: 0.33515 [22.24s]
+2025-01-08 01:52:20,249 P1496579 INFO Epoch 7/30, training loss: 0.31601 [22.60s]
+2025-01-08 01:52:44,659 P1496579 INFO Epoch 8/30, training loss: 0.30647 [24.41s]
+2025-01-08 01:53:55,355 P1496579 INFO Test -- loss: 0.4589, F1: 0.6686, Rec: 0.5358, Pre: 0.8889, My_metric: 0.6408, Avg_top: 8.7865, A@1: 0.8997, A@3: 0.9686, rootcause_avg_diff: 0.0227, normal_avg_diff: -0.0003
+2025-01-08 01:54:17,680 P1496579 INFO Epoch 9/30, training loss: 0.29621 [22.32s]
+2025-01-08 01:54:40,013 P1496579 INFO Epoch 10/30, training loss: 0.30225 [22.33s]
+2025-01-08 01:55:02,532 P1496579 INFO Epoch 11/30, training loss: 0.28764 [22.52s]
+2025-01-08 01:56:32,687 P1496579 INFO Test -- loss: 0.3786, F1: 0.7650, Rec: 0.6855, Pre: 0.8652, My_metric: 0.5158, Avg_top: 11.4285, A@1: 0.8808, A@3: 0.9425, rootcause_avg_diff: 0.0200, normal_avg_diff: -0.0002
+2025-01-08 01:56:55,043 P1496579 INFO Epoch 12/30, training loss: 0.28187 [22.35s]
+2025-01-08 01:57:17,756 P1496579 INFO Epoch 13/30, training loss: 0.28164 [22.71s]
+2025-01-08 01:57:40,494 P1496579 INFO Epoch 14/30, training loss: 0.26846 [22.74s]
+2025-01-08 01:59:04,986 P1496579 INFO Test -- loss: 0.5279, F1: 0.7194, Rec: 0.6241, Pre: 0.8490, My_metric: 0.5210, Avg_top: 11.4352, A@1: 0.8378, A@3: 0.8747, rootcause_avg_diff: 0.0212, normal_avg_diff: -0.0004
+2025-01-08 01:59:27,393 P1496579 INFO Epoch 15/30, training loss: 0.27219 [22.40s]
+2025-01-08 01:59:48,494 P1496579 INFO Epoch 16/30, training loss: 0.25881 [21.10s]
+2025-01-08 02:00:12,503 P1496579 INFO Epoch 17/30, training loss: 0.26369 [24.01s]
