@@ -21,7 +21,9 @@ class chunkDataset(Dataset): #[node_num, T]
         for idx, chunk in enumerate(chunks):
             chunk_id = chunk["window_id"]
             self.idx2id[idx] = chunk_id
-            graph = dgl.graph(edges, num_nodes = num_node)
+            graph = dgl.graph(edges, num_nodes = num_node) #changed!
+            graph = dgl.add_self_loop(graph) #zero in-degree nodes will lead to invalid output value
+
             
             # (node_num, window_size)
             graph.ndata["latency"] = torch.FloatTensor(chunk["latency"])
@@ -98,17 +100,25 @@ def run(params):
     params['weight_loss'] = normed_weights
 
 
-    # # edge 정보 load하기 
-    # # 1. placement 에서 physical relationship(edge)정보 추가 (양방향) 
-    # for vm_index, node_list in placements.items():
-    #     #node_list 안에 있는 노드끼리 양방향으로 edge 추가 
+    edges_set = set()
+    # edge 정보 load하기 
+    # 1. placement 에서 physical relationship(edge)정보 추가 (양방향) 
+    # for key, nodes in placements.items():
+    #     for i in range(len(nodes)):
+    #         for j in range(i+1, len(nodes)):
+    #             edges_set.add((nodes[i], nodes[j]))
+    #             edges_set.add((nodes[j], nodes[i]))
         
     # # 2. call path 에서 logical relationship(edge)정보 추가 (양방향)
-    # params['call_paths']
+    for path in call_paths.values():
+        for i in range(len(path)-1):
+            edges_set.add((path[i], path[i + 1]))
+            edges_set.add((path[i + 1], path[i])) 
 
+    
+
+    source, target = zip(*edges_set)
     edges = (source, target)
-
-    pdb.set_trace()
 
     train_data = chunkDataset(train_chunks, edges, params['nodes'])
     test_data = chunkDataset(test_chunks, edges, params['nodes'])
@@ -121,7 +131,7 @@ def run(params):
     logging.info("Data loaded successfully!")
 
     device = get_device(params["check_device"])
-    model = BaseModel(nodes, device, normal_avg, lr = params["learning_rate"], **params)
+    model = BaseModel(params['nodes'], device, normal_avg, lr = params["learning_rate"], **params)
 
 
     # #For training!! 
@@ -185,8 +195,6 @@ def extract_normal_status(train_data):
     return result 
 
 
-
-
 # Instantiate your Dataset and DataLoader
 ############################################################################
 if __name__ == "__main__":
@@ -199,11 +207,11 @@ if __name__ == "__main__":
     model = "all"
     result_dir = "./results"
     each_modality_feature_num = 1 # 각각의 modality(latency, cpu ,, )마다 feature의 개수, 여기서는 모두 1
-    chunk_length = 20 # window size 
+    chunk_length = 100 # window size 
     evaluation_epoch = 3
 
-    train_file = "../data/train_data.pkl"
-    test_file = "../data/test_data.pkl"
+    train_file = "/root/projects/gamma/data/train_data_100_20.pkl"
+    test_file = "/root/projects/gamma/data/test_data_100_20.pkl"
 
     call_path_file = "/root/projects/gamma/metadata/graph_path.txt"
     placement_file = "/root/projects/gamma/metadata/compose_ids.csv"

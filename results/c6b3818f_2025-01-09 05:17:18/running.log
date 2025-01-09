@@ -1,0 +1,37 @@
+2025-01-09 05:17:35,671 P50772 INFO Data loaded successfully!
+2025-01-09 05:17:35,679 P50772 INFO Using GPU...
+2025-01-09 05:18:02,542 P50772 INFO Epoch 1/30, training loss: 0.48325 [26.38s]
+2025-01-09 05:18:26,134 P50772 INFO Epoch 2/30, training loss: 0.42465 [23.59s]
+2025-01-09 05:19:54,311 P50772 INFO Test -- loss: 0.3967, F1: 0.7282, Rec: 0.6393, Pre: 0.8458, My_metric: 0.2878, Avg_top: 17.3628, A@1: 0.9864, A@3: 0.9932, rootcause_avg_diff: 0.0027, normal_avg_diff: -0.0000
+2025-01-09 05:20:17,907 P50772 INFO Epoch 3/30, training loss: 0.40709 [23.58s]
+2025-01-09 05:20:41,621 P50772 INFO Epoch 4/30, training loss: 0.39653 [23.71s]
+2025-01-09 05:21:05,393 P50772 INFO Epoch 5/30, training loss: 0.38907 [23.77s]
+2025-01-09 05:22:24,472 P50772 INFO Test -- loss: 0.4337, F1: 0.7054, Rec: 0.5833, Pre: 0.8921, My_metric: 0.3296, Avg_top: 16.3442, A@1: 0.9740, A@3: 0.9826, rootcause_avg_diff: 0.0012, normal_avg_diff: 0.0000
+2025-01-09 05:22:48,434 P50772 INFO Epoch 6/30, training loss: 0.37963 [23.96s]
+2025-01-09 05:23:12,794 P50772 INFO Epoch 7/30, training loss: 0.37853 [24.36s]
+2025-01-09 05:23:37,510 P50772 INFO Epoch 8/30, training loss: 0.37427 [24.72s]
+2025-01-09 05:24:55,060 P50772 INFO Test -- loss: 0.4189, F1: 0.6991, Rec: 0.5713, Pre: 0.9006, My_metric: 0.3953, Avg_top: 13.7399, A@1: 0.9717, A@3: 0.9833, rootcause_avg_diff: 0.0020, normal_avg_diff: -0.0000
+2025-01-09 05:25:18,766 P50772 INFO Epoch 9/30, training loss: 0.35631 [23.70s]
+2025-01-09 05:25:43,613 P50772 INFO Epoch 10/30, training loss: 0.34825 [24.85s]
+2025-01-09 05:26:08,330 P50772 INFO Epoch 11/30, training loss: 0.33674 [24.72s]
+2025-01-09 05:27:49,052 P50772 INFO Test -- loss: 0.3257, F1: 0.7841, Rec: 0.7266, Pre: 0.8515, My_metric: 0.3431, Avg_top: 16.2303, A@1: 0.8767, A@3: 0.9138, rootcause_avg_diff: 0.0007, normal_avg_diff: -0.0000
+2025-01-09 05:28:13,142 P50772 INFO Epoch 12/30, training loss: 0.33007 [24.08s]
+2025-01-09 05:28:37,107 P50772 INFO Epoch 13/30, training loss: 0.33036 [23.96s]
+2025-01-09 05:29:01,019 P50772 INFO Epoch 14/30, training loss: 0.33088 [23.91s]
+2025-01-09 05:30:57,510 P50772 INFO Test -- loss: 0.3209, F1: 0.8197, Rec: 0.8208, Pre: 0.8186, My_metric: 0.3498, Avg_top: 16.1455, A@1: 0.8004, A@3: 0.8431, rootcause_avg_diff: 0.0008, normal_avg_diff: -0.0000
+2025-01-09 05:31:20,567 P50772 INFO Epoch 15/30, training loss: 0.32384 [23.05s]
+2025-01-09 05:31:43,635 P50772 INFO Epoch 16/30, training loss: 0.30407 [23.07s]
+2025-01-09 05:32:07,650 P50772 INFO Epoch 17/30, training loss: 0.30094 [24.01s]
+2025-01-09 05:33:43,524 P50772 INFO Test -- loss: 0.3568, F1: 0.7807, Rec: 0.6984, Pre: 0.8849, My_metric: 0.4052, Avg_top: 14.1927, A@1: 0.8842, A@3: 0.8958, rootcause_avg_diff: 0.0026, normal_avg_diff: 0.0002
+2025-01-09 05:34:07,076 P50772 INFO Epoch 18/30, training loss: 0.29130 [23.55s]
+2025-01-09 05:34:31,305 P50772 INFO Epoch 19/30, training loss: 0.30091 [24.23s]
+2025-01-09 05:34:54,459 P50772 INFO Epoch 20/30, training loss: 0.29015 [23.15s]
+2025-01-09 05:36:49,947 P50772 INFO Test -- loss: 0.2999, F1: 0.8262, Rec: 0.8193, Pre: 0.8332, My_metric: 0.3661, Avg_top: 15.3387, A@1: 0.7499, A@3: 0.7732, rootcause_avg_diff: 0.0015, normal_avg_diff: 0.0001
+2025-01-09 05:37:13,172 P50772 INFO Epoch 21/30, training loss: 0.27524 [23.21s]
+2025-01-09 05:37:37,520 P50772 INFO Epoch 22/30, training loss: 0.27633 [24.35s]
+2025-01-09 05:38:00,976 P50772 INFO Epoch 23/30, training loss: 0.27136 [23.46s]
+2025-01-09 05:39:57,897 P50772 INFO Test -- loss: 0.2972, F1: 0.8323, Rec: 0.8374, Pre: 0.8273, My_metric: 0.3908, Avg_top: 14.7577, A@1: 0.7406, A@3: 0.7659, rootcause_avg_diff: 0.0020, normal_avg_diff: 0.0001
+2025-01-09 05:40:21,029 P50772 INFO Epoch 24/30, training loss: 0.25715 [23.12s]
+2025-01-09 05:40:44,197 P50772 INFO Epoch 25/30, training loss: 0.25842 [23.17s]
+2025-01-09 05:41:08,824 P50772 INFO Epoch 26/30, training loss: 0.25046 [24.63s]
+2025-01-09 05:42:54,618 P50772 INFO Test -- loss: 0.3250, F1: 0.8292, Rec: 0.7986, Pre: 0.8623, My_metric: 0.3851, Avg_top: 15.0934, A@1: 0.7392, A@3: 0.7504, rootcause_avg_diff: 0.0021, normal_avg_diff: 0.0003

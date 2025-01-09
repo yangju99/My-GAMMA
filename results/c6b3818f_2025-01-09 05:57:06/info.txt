@@ -1,0 +1,4 @@
+homogeneous + hadnling zero in-degree nodes (add self loop)
+undirected edge
+logical
+windowsize = 20 

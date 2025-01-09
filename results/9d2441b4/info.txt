@@ -1,0 +1,5 @@
+homogeneous 
+directed edge
+logical 
+windowsize = 20 
+

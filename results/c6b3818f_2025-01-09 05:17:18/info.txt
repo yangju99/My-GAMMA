@@ -1,0 +1,4 @@
+homogeneous 
+undirected edge
+physical 
+windowsize = 20 

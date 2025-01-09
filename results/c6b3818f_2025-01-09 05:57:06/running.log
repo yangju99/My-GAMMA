@@ -1,0 +1,44 @@
+2025-01-09 05:57:41,550 P77453 INFO Data loaded successfully!
+2025-01-09 05:57:41,560 P77453 INFO Using GPU...
+2025-01-09 05:58:09,405 P77453 INFO Epoch 1/30, training loss: 0.48970 [27.36s]
+2025-01-09 05:58:33,382 P77453 INFO Epoch 2/30, training loss: 0.39808 [23.98s]
+2025-01-09 06:01:56,175 P77453 INFO Test -- loss: 0.5227, F1: 0.6584, Rec: 0.9116, Pre: 0.5152, My_metric: 0.3653, Avg_top: 16.1251, A@1: 0.6762, A@3: 0.8278, rootcause_avg_diff: 0.0011, normal_avg_diff: -0.0000
+2025-01-09 06:02:19,509 P77453 INFO Epoch 3/30, training loss: 0.35054 [23.32s]
+2025-01-09 06:02:42,384 P77453 INFO Epoch 4/30, training loss: 0.34027 [22.87s]
+2025-01-09 06:03:05,214 P77453 INFO Epoch 5/30, training loss: 0.32354 [22.83s]
+2025-01-09 06:05:27,087 P77453 INFO Test -- loss: 0.4540, F1: 0.7432, Rec: 0.8523, Pre: 0.6588, My_metric: 0.3844, Avg_top: 15.7696, A@1: 0.6513, A@3: 0.8876, rootcause_avg_diff: 0.0005, normal_avg_diff: 0.0011
+2025-01-09 06:05:49,986 P77453 INFO Epoch 6/30, training loss: 0.31193 [22.89s]
+2025-01-09 06:06:14,032 P77453 INFO Epoch 7/30, training loss: 0.29413 [24.05s]
+2025-01-09 06:06:38,354 P77453 INFO Epoch 8/30, training loss: 0.30058 [24.32s]
+2025-01-09 06:08:20,370 P77453 INFO Test -- loss: 0.3819, F1: 0.7821, Rec: 0.7050, Pre: 0.8781, My_metric: 0.3690, Avg_top: 15.9617, A@1: 0.7379, A@3: 0.9123, rootcause_avg_diff: 0.0017, normal_avg_diff: 0.0012
+2025-01-09 06:08:45,525 P77453 INFO Epoch 9/30, training loss: 0.28139 [25.14s]
+2025-01-09 06:09:10,024 P77453 INFO Epoch 10/30, training loss: 0.26366 [24.50s]
+2025-01-09 06:09:33,937 P77453 INFO Epoch 11/30, training loss: 0.26281 [23.91s]
+2025-01-09 06:11:52,089 P77453 INFO Test -- loss: 0.4421, F1: 0.7450, Rec: 0.8125, Pre: 0.6879, My_metric: 0.3746, Avg_top: 15.5730, A@1: 0.6316, A@3: 0.8953, rootcause_avg_diff: 0.0026, normal_avg_diff: 0.0011
+2025-01-09 06:12:15,396 P77453 INFO Epoch 12/30, training loss: 0.26688 [23.30s]
+2025-01-09 06:12:38,692 P77453 INFO Epoch 13/30, training loss: 0.24292 [23.30s]
+2025-01-09 06:13:02,208 P77453 INFO Epoch 14/30, training loss: 0.23436 [23.52s]
+2025-01-09 06:15:16,585 P77453 INFO Test -- loss: 0.4288, F1: 0.7901, Rec: 0.8560, Pre: 0.7336, My_metric: 0.3755, Avg_top: 15.7960, A@1: 0.5801, A@3: 0.9525, rootcause_avg_diff: 0.0024, normal_avg_diff: 0.0026
+2025-01-09 06:15:39,841 P77453 INFO Epoch 15/30, training loss: 0.23770 [23.24s]
+2025-01-09 06:16:03,159 P77453 INFO Epoch 16/30, training loss: 0.21895 [23.32s]
+2025-01-09 06:16:26,502 P77453 INFO Epoch 17/30, training loss: 0.22236 [23.34s]
+2025-01-09 06:18:31,987 P77453 INFO Test -- loss: 0.3888, F1: 0.7946, Rec: 0.8212, Pre: 0.7696, My_metric: 0.3850, Avg_top: 15.3623, A@1: 0.6383, A@3: 0.8722, rootcause_avg_diff: 0.0047, normal_avg_diff: 0.0018
+2025-01-09 06:18:54,637 P77453 INFO Epoch 18/30, training loss: 0.21417 [22.64s]
+2025-01-09 06:19:17,338 P77453 INFO Epoch 19/30, training loss: 0.21264 [22.70s]
+2025-01-09 06:19:40,057 P77453 INFO Epoch 20/30, training loss: 0.20375 [22.72s]
+2025-01-09 06:21:01,570 P77453 INFO Test -- loss: 0.4092, F1: 0.7517, Rec: 0.6455, Pre: 0.8997, My_metric: 0.3772, Avg_top: 15.2675, A@1: 0.7002, A@3: 0.9023, rootcause_avg_diff: 0.0020, normal_avg_diff: 0.0007
+2025-01-09 06:21:24,149 P77453 INFO Epoch 21/30, training loss: 0.20413 [22.57s]
+2025-01-09 06:21:46,785 P77453 INFO Epoch 22/30, training loss: 0.19241 [22.64s]
+2025-01-09 06:22:09,361 P77453 INFO Epoch 23/30, training loss: 0.19987 [22.58s]
+2025-01-09 06:24:03,002 P77453 INFO Test -- loss: 0.3766, F1: 0.7998, Rec: 0.8088, Pre: 0.7910, My_metric: 0.3892, Avg_top: 14.8850, A@1: 0.6481, A@3: 0.8918, rootcause_avg_diff: 0.0054, normal_avg_diff: 0.0016
+2025-01-09 06:24:22,914 P77453 INFO Epoch 24/30, training loss: 0.19097 [19.90s]
+2025-01-09 06:24:42,755 P77453 INFO Epoch 25/30, training loss: 0.18487 [19.84s]
+2025-01-09 06:25:02,595 P77453 INFO Epoch 26/30, training loss: 0.18133 [19.84s]
+2025-01-09 06:26:09,806 P77453 INFO Test -- loss: 0.6803, F1: 0.6662, Rec: 0.5341, Pre: 0.8852, My_metric: 0.3675, Avg_top: 15.0632, A@1: 0.8427, A@3: 0.9317, rootcause_avg_diff: 0.0061, normal_avg_diff: -0.0003
+2025-01-09 06:26:29,686 P77453 INFO Epoch 27/30, training loss: 0.18264 [19.87s]
+2025-01-09 06:26:49,497 P77453 INFO Epoch 28/30, training loss: 0.18209 [19.81s]
+2025-01-09 06:27:09,399 P77453 INFO Epoch 29/30, training loss: 0.17665 [19.90s]
+2025-01-09 06:28:27,194 P77453 INFO Test -- loss: 0.6744, F1: 0.6208, Rec: 0.5294, Pre: 0.7506, My_metric: 0.3777, Avg_top: 14.9394, A@1: 0.7551, A@3: 0.9244, rootcause_avg_diff: 0.0059, normal_avg_diff: 0.0001
+2025-01-09 06:28:47,043 P77453 INFO Epoch 30/30, training loss: 0.17438 [19.84s]
+2025-01-09 06:28:47,043 P77453 INFO * Best result got at epoch 23 with F1: 0.7998
+2025-01-09 06:28:47,047 P77453 INFO Current hash_id c6b3818f_2025-01-09 05:57:06
